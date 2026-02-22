@@ -48,6 +48,11 @@ from app.prompt_manager import (
     get_active_versions as pm_get_active_versions,
 )
 from app.llm_client import get_llm_runtime, set_llm_runtime
+from app.cost_calculator import (
+    list_model_pricing,
+    estimate_evaluation_cost,
+    get_estimated_tokens_per_evaluation,
+)
 
 load_dotenv()
 
@@ -69,7 +74,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-PUBLIC_API_PATHS = {"/health", "/api/health", "/api/auth/login", "/api/auth/logout"}
+PUBLIC_API_PATHS = {"/health", "/api/health", "/api/auth/login", "/api/auth/logout", "/api/samples"}
 
 
 @app.middleware("http")
@@ -77,7 +82,7 @@ async def auth_middleware(request: Request, call_next):
     path = request.url.path
     if not path.startswith("/api/"):
         return await call_next(request)
-    if path in PUBLIC_API_PATHS:
+    if path in PUBLIC_API_PATHS or path.startswith("/api/samples"):
         return await call_next(request)
     token = request.cookies.get(SESSION_COOKIE)
     if not token or not get_session(token):
@@ -182,6 +187,41 @@ async def update_llm_config(req: LlmConfigRequest, request: Request):
             provider=req.provider.strip().lower(),
             model=req.model.strip(),
             openai_api_key=req.openai_api_key,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# PRICING
+# ---------------------------------------------------------------------------
+
+@app.get("/pricing")
+async def get_pricing():
+    llm_runtime = get_llm_runtime()
+    return {
+        "models": list_model_pricing(),
+        "estimated_tokens_per_evaluation": get_estimated_tokens_per_evaluation(),
+        "active_model": llm_runtime.get("model"),
+    }
+
+
+@app.get("/estimate-cost")
+async def get_estimate_cost(
+    model: Optional[str] = None,
+    count: int = 1,
+    cached_input_ratio: float = 0.0,
+    input_tokens: Optional[int] = None,
+    output_tokens: Optional[int] = None,
+):
+    selected_model = model or get_llm_runtime().get("model", "")
+    try:
+        return estimate_evaluation_cost(
+            model=selected_model,
+            count=count,
+            cached_input_ratio=cached_input_ratio,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -311,6 +351,36 @@ async def assess_competency(request: AssessmentRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd przetwarzania: {str(e)}")
+
+
+# ---------------------------------------------------------------------------
+# SAMPLE RESPONSES - przykładowe odpowiedzi do testowania
+# ---------------------------------------------------------------------------
+
+SAMPLE_RESPONSES_DIR = Path(__file__).resolve().parents[1]
+
+@app.get("/api/samples")
+async def list_sample_responses():
+    """Lista dostępnych przykładowych odpowiedzi testowych"""
+    samples = []
+    for f in sorted(SAMPLE_RESPONSES_DIR.glob("odpowiedz_*.md")):
+        name = f.stem
+        label = name.replace("odpowiedz_", "").replace("_", " ").title()
+        samples.append({"id": name, "label": label, "filename": f.name})
+    return {"samples": samples}
+
+
+@app.get("/api/samples/{sample_id}")
+async def get_sample_response(sample_id: str):
+    """Pobierz treść przykładowej odpowiedzi"""
+    filepath = SAMPLE_RESPONSES_DIR / f"{sample_id}.md"
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail=f"Sample '{sample_id}' not found")
+    content = filepath.read_text(encoding="utf-8")
+    lines = content.strip().split("\n")
+    title = lines[0].lstrip("# ").strip() if lines else sample_id
+    body = "\n".join(lines[1:]).strip() if len(lines) > 1 else content
+    return {"id": sample_id, "title": title, "content": body}
 
 
 # ---------------------------------------------------------------------------

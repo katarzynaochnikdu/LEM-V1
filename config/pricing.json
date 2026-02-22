@@ -1,0 +1,44 @@
+{
+  "models": {
+    "gpt-5-mini": {
+      "input_per_1m": 0.25,
+      "cached_input_per_1m": 0.025,
+      "output_per_1m": 2.0,
+      "is_reasoning": true
+    },
+    "gpt-4.1": {
+      "input_per_1m": 2.0,
+      "cached_input_per_1m": 0.5,
+      "output_per_1m": 8.0,
+      "is_reasoning": false
+    },
+    "gpt-5.2": {
+      "input_per_1m": 1.75,
+      "cached_input_per_1m": 0.175,
+      "output_per_1m": 14.0,
+      "is_reasoning": true
+    }
+  },
+  "estimated_tokens_per_evaluation": {
+    "input": 10000,
+    "output": 8100
+  },
+  "pipeline_token_budgets": {
+    "parser": {
+      "input": 2000,
+      "output": 2000
+    },
+    "mapper": {
+      "input": 2500,
+      "output": 3000
+    },
+    "scorer": {
+      "input": 3500,
+      "output": 70
+    },
+    "feedback": {
+      "input": 2000,
+      "output": 3000
+    }
+  }
+}

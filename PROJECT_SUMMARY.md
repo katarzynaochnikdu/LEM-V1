@@ -229,19 +229,40 @@ lem-assessment/
 
 **Na 1 ocenę**:
 - 4 wywołania LLM (Parser, Mapper, Scorer wymiary, Feedback)
-- Średnio ~8K tokenów input + 2K tokenów output
-- Koszt GPT-4o: ~$0.10-0.15/ocena
+- Szacowany budżet tokenów: ~10K input + ~8.1K output
 
-**Na 100 uczestników**:
-- 100 ocen × $0.12 = **$12**
-- Czas: ~30-40 minut (równolegle)
+**Ceny modeli OpenAI (za 1M tokenów)**:
 
-**Na 1000 uczestników/rok**:
-- 1000 ocen × $0.12 = **$120/rok**
+| Model | Input | Cached Input | Output |
+|------|------:|-------------:|-------:|
+| GPT-5-mini | $0.25 | $0.025 | $2.00 |
+| GPT-4.1 | $2.00 | $0.50 | $8.00 |
+| GPT-5.2 | $1.75 | $0.175 | $14.00 |
+
+**Koszt na 1 ocenę (10K input + 8.1K output)**:
+
+| Model | Input | Output | Razem / ocena |
+|------|------:|-------:|--------------:|
+| GPT-5-mini | $0.0025 | $0.0162 | **$0.0187** |
+| GPT-4.1 | $0.0200 | $0.0648 | **$0.0848** |
+| GPT-5.2 | $0.0175 | $0.1134 | **$0.1309** |
+
+**Koszt na skalę**:
+
+| Skala | GPT-5-mini | GPT-4.1 | GPT-5.2 |
+|------|-----------:|--------:|--------:|
+| 100 ocen | **$1.87** | **$8.48** | **$13.09** |
+| 1000 ocen / rok | **$18.70** | **$84.80** | **$130.90** |
+
+**Wniosek**:
+- Najniższy koszt operacyjny daje GPT-5-mini
+- GPT-4.1 jest kompromisem koszt/jakość
+- GPT-5.2 jest najdroższy, ale oferuje najwyższe możliwości reasoning
 
 ### Optymalizacje kosztów (przyszłość)
 
-- Fine-tuning GPT-4o: -30% kosztów
+- Caching input tokens (prompty systemowe): potencjalnie -5% do -15% kosztów
+- Fine-tuning: -30% kosztów
 - Caching: -40% kosztów
 - Hybrid approach (regułki + LLM): -60% kosztów
 
