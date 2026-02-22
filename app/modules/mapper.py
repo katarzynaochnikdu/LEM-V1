@@ -10,7 +10,7 @@ from app.llm_client import get_llm_client, get_model_name, max_tokens_param, tem
 from app.json_utils import extract_json_from_text
 from app.models import ParsedResponse, MappedResponse, WymiarEvidence
 from app.rubric import get_wymiary_for_competency
-from app.prompt_manager import get_active_prompt_content
+from app.prompt_manager import get_active_prompt_content, get_system_prompt
 
 
 class ResponseMapper:
@@ -21,6 +21,7 @@ class ResponseMapper:
         self.client = get_llm_client()
         self.model = get_model_name()
         self.prompt_template = get_active_prompt_content("map", competency)
+        self.system_prompt = get_system_prompt("map")
         self.wymiary = get_wymiary_for_competency(competency)
 
     async def map(self, parsed_response: ParsedResponse) -> MappedResponse:
@@ -37,14 +38,8 @@ class ResponseMapper:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Jesteś ekspertem w ocenie kompetencji menedżerskich. Zwracasz wyłącznie poprawny JSON z ekstrakcją cytatów."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": prompt}
                 ],
                 **temperature_param(0.1),
                 **max_tokens_param(3000)

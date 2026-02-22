@@ -1,0 +1,292 @@
+{
+  "id": "okreslanie_priorytetow",
+  "nazwa": "Określanie celów i priorytetów",
+  "version": "1.0",
+  "source": "4 LEM.pdf",
+  "algorytm": [
+    "1. Zdefiniuj główne cele i priorytety",
+    "2. Określ kontekst podejmowania decyzji",
+    "3. Wybierz optymalny tryb decyzji",
+    "4. Wybierz i poranguj kryteria priorytetyzacji",
+    "5. Przeanalizuj możliwe opcje i wybierz metodę podjęcia decyzji",
+    "6. Podejmij decyzję i skaskaduj, wyjaśniając pracownikom kryteria priorytetyzacji"
+  ],
+  "wymiary": {
+    "cele_priorytety": {
+      "nazwa": "Definiowanie głównych celów i priorytetów",
+      "opis": "Czy menedżer jasno definiuje cele i priorytety oraz rozróżnia siłę wpływu decyzji na biznes",
+      "poziomy": {
+        "0.0": {
+          "opis": "Unika podejmowania decyzji i/lub je przeciąga, nie definiuje celów",
+          "zachowania": [
+            "Unika podejmowania decyzji i/lub je przeciąga",
+            "Nie definiuje priorytetów dla zespołu",
+            "Brak jasnych celów biznesowych"
+          ]
+        },
+        "1.0": {
+          "opis": "Zmienia priorytety na bazie szczątkowych informacji lub emocji",
+          "zachowania": [
+            "Zmienia priorytety na bazie szczątkowych informacji bądź emocji własnych i/lub współpracowników",
+            "Niestabilne priorytety powodujące chaos w zespole",
+            "Brak systematycznego podejścia do celów"
+          ]
+        },
+        "2.0": {
+          "opis": "W krótkim czasie podejmuje decyzje o niskim wpływie, rozróżnia siłę wpływu",
+          "zachowania": [
+            "W krótkim czasie podejmuje decyzje o niskim poziomie wpływu na biznes",
+            "Rozróżnia siłę wpływu decyzji na efekty biznesowe",
+            "Deleguje na pracowników decyzje o niższym poziomie ryzyka i/lub wpływu na biznes"
+          ]
+        },
+        "3.0": {
+          "opis": "Systematycznie definiuje cele strategiczne i operacyjne z priorytetami",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Definiuje cele strategiczne i operacyjne",
+            "Jasno komunikuje hierarchię priorytetów"
+          ]
+        },
+        "4.0": {
+          "opis": "Zaawansowane zarządzanie celami z kaskadowaniem na zespół",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Kaskaduje cele na poszczególnych pracowników",
+            "Buduje odpowiedzialność zespołu za realizację celów"
+          ]
+        }
+      }
+    },
+    "kontekst_decyzji": {
+      "nazwa": "Określanie kontekstu podejmowania decyzji",
+      "opis": "Czy menedżer analizuje kontekst i definiuje zmienne wpływające na decyzję",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie definiuje kontekstu podejmowanych decyzji",
+          "zachowania": [
+            "Nie definiuje kontekstu podejmowanych decyzji",
+            "Ignoruje zmienne wpływające na sytuację",
+            "Decyzje oderwane od realiów"
+          ]
+        },
+        "1.0": {
+          "opis": "Ustala jeden schemat decyzyjny dla różnych kontekstów bez analizy",
+          "zachowania": [
+            "Ustala jeden schemat decyzyjny dla różnych kontekstów bez analizy dodatkowych zmiennych",
+            "Nie dostosowuje podejścia do sytuacji",
+            "Sztywny schemat niezależnie od okoliczności"
+          ]
+        },
+        "2.0": {
+          "opis": "Analizuje kontekst i dostosowuje podejście do sytuacji",
+          "zachowania": [
+            "Identyfikuje kluczowe zmienne kontekstualne",
+            "Dostosowuje podejście do specyfiki sytuacji",
+            "Uwzględnia informacje od zespołu"
+          ]
+        },
+        "3.0": {
+          "opis": "Dogłębna analiza kontekstu z uwzględnieniem wielu perspektyw",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Uwzględnia perspektywy różnych interesariuszy",
+            "Analizuje kontekst wielowymiarowo"
+          ]
+        },
+        "4.0": {
+          "opis": "Kompleksowa analiza kontekstu z prognozowaniem i adaptacją",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Prognozuje zmiany kontekstualne i ich wpływ",
+            "Elastycznie adaptuje podejście do zmieniających się warunków"
+          ]
+        }
+      }
+    },
+    "tryb_decyzji": {
+      "nazwa": "Wybór optymalnego trybu decyzji",
+      "opis": "Czy menedżer świadomie wybiera tryb podejmowania decyzji (samodzielny vs zespołowy)",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie rozróżnia trybów podejmowania decyzji",
+          "zachowania": [
+            "Nie ma świadomości różnych trybów decyzyjnych",
+            "Podejmuje decyzje chaotycznie",
+            "Brak refleksji nad sposobem podejmowania decyzji"
+          ]
+        },
+        "1.0": {
+          "opis": "Korzysta głównie z trybu samodzielnego niezależnie od kontekstu",
+          "zachowania": [
+            "Korzysta głównie z trybu samodzielnego podejmowania decyzji niezależnie od kontekstu oraz konsekwencji",
+            "Nie angażuje zespołu w proces decyzyjny",
+            "Nie dostosowuje trybu do sytuacji"
+          ]
+        },
+        "2.0": {
+          "opis": "Korzysta z trybu zespołowego gdy istotne jest doskonalenie kompetencji",
+          "zachowania": [
+            "Korzysta z trybu podejmowania decyzji wraz z zespołem jeśli istotne jest doskonalenie samodzielności i/lub kompetencji pracowników",
+            "Rozróżnia sytuacje wymagające różnych trybów",
+            "Deleguje na pracowników decyzje o niższym poziomie ryzyka"
+          ]
+        },
+        "3.0": {
+          "opis": "Świadomie wybiera tryb decyzji uwzględniając wpływ na efektywność wdrożenia",
+          "zachowania": [
+            "Wybierając tryb podejmowania decyzji uwzględnia jej wpływ na efektywność wdrożenia zmian biznesowych",
+            "Balansuje między szybkością a jakością decyzji",
+            "Angażuje odpowiednie osoby w proces decyzyjny"
+          ]
+        },
+        "4.0": {
+          "opis": "Zaawansowane zarządzanie trybami z budowaniem kultury decyzyjności",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Buduje kulturę podejmowania decyzji w zespole",
+            "Rozwija autonomię decyzyjną pracowników"
+          ]
+        }
+      }
+    },
+    "kryteria_priorytetyzacji": {
+      "nazwa": "Wybór i rangowanie kryteriów priorytetyzacji",
+      "opis": "Czy menedżer posiada standardowy zestaw kryteriów i adekwatnie je modyfikuje",
+      "poziomy": {
+        "0.0": {
+          "opis": "Brak kryteriów priorytetyzacji, chaotyczne ustalanie priorytetów",
+          "zachowania": [
+            "Nie posiada kryteriów priorytetyzacji",
+            "Priorytety ustalane ad hoc bez systemu",
+            "Brak powtarzalnego procesu"
+          ]
+        },
+        "1.0": {
+          "opis": "Dokłada kolejne kryteria co utrudnia/wydłuża podjęcie decyzji",
+          "zachowania": [
+            "Pomimo jasnych wytycznych organizacyjnych dokłada kolejne kryteria decyzyjne co utrudnia i/lub wydłuża podjęcie decyzji",
+            "Nadmiar kryteriów paraliżuje proces",
+            "Brak hierarchii kryteriów"
+          ]
+        },
+        "2.0": {
+          "opis": "Posiada standardowy zestaw kryteriów, adekwatnie modyfikuje do potrzeb",
+          "zachowania": [
+            "Posiada standardowy zestaw kryteriów dla danych procesów i/lub zadań które adekwatnie do potrzeb modyfikuje",
+            "Komunikuje kryteria priorytetyzacji zadań pracownikom",
+            "Kryteria jasne i zrozumiałe"
+          ]
+        },
+        "3.0": {
+          "opis": "Systematyczne rangowanie kryteriów z uwzględnieniem strategii",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Ranguje kryteria według wpływu strategicznego",
+            "Regularnie weryfikuje i aktualizuje kryteria"
+          ]
+        },
+        "4.0": {
+          "opis": "Zaawansowany system kryteriów z zaangażowaniem zespołu i ciągłym doskonaleniem",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Angażuje zespół w definiowanie kryteriów",
+            "Systematycznie doskonali proces priorytetyzacji"
+          ]
+        }
+      }
+    },
+    "opcje_metody": {
+      "nazwa": "Analiza opcji i wybór metody decyzji",
+      "opis": "Czy menedżer posiada metody oceny możliwych opcji decyzyjnych",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie analizuje opcji decyzyjnych, brak metody",
+          "zachowania": [
+            "Nie analizuje możliwych opcji decyzyjnych",
+            "Brak systematycznej metody podejmowania decyzji",
+            "Decyzje podejmowane bez analizy"
+          ]
+        },
+        "1.0": {
+          "opis": "Nie analizuje opcji, trzyma się raz ustalonych kryteriów",
+          "zachowania": [
+            "Nie analizuje możliwych opcji decyzyjnych trzymając się raz ustalonych kryteriów",
+            "Brak elastyczności w podejściu",
+            "Ignoruje nowe informacje"
+          ]
+        },
+        "2.0": {
+          "opis": "Posiada metody oceny opcji decyzyjnych",
+          "zachowania": [
+            "Posiada metody oceny możliwych opcji decyzyjnych podczas podejmowania decyzji oraz priorytetyzacji zadań",
+            "Porównuje opcje według kryteriów",
+            "Wybiera opcję na podstawie analizy"
+          ]
+        },
+        "3.0": {
+          "opis": "Zaawansowane metody oceny z analizą wpływu na wdrożenie zmian",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Wybierając metodę uwzględnia wpływ na efektywność wdrożenia zmian biznesowych",
+            "Stosuje wielokryterialne metody oceny"
+          ]
+        },
+        "4.0": {
+          "opis": "Kompleksowe metody z ciągłym doskonaleniem i uczeniem się z doświadczeń",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Systematycznie doskonali metody decyzyjne",
+            "Uczy się z wcześniejszych decyzji i ich efektów"
+          ]
+        }
+      }
+    },
+    "kaskadowanie": {
+      "nazwa": "Kaskadowanie decyzji i komunikacja kryteriów",
+      "opis": "Czy menedżer skutecznie kaskaduje decyzje wyjaśniając pracownikom kryteria priorytetyzacji",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie komunikuje priorytetów ani kryteriów decyzyjnych zespołowi",
+          "zachowania": [
+            "Nie komunikuje z jakich powodów należy podjąć działania w zakresie zmian priorytetów zadaniowych",
+            "Zespół nie zna priorytetów",
+            "Brak kaskadowania decyzji"
+          ]
+        },
+        "1.0": {
+          "opis": "Komunikuje decyzje bez wyjaśnienia kryteriów priorytetyzacji",
+          "zachowania": [
+            "Informuje o decyzjach bez uzasadnienia",
+            "Nie wyjaśnia kryteriów stojących za priorytetami",
+            "Komunikacja jednostronna"
+          ]
+        },
+        "2.0": {
+          "opis": "Komunikuje kryteria priorytetyzacji zadań pracownikom",
+          "zachowania": [
+            "Komunikuje kryteria priorytetyzacji zadań pracownikom",
+            "Wyjaśnia powody zmian priorytetów",
+            "Zapewnia zrozumienie priorytetów przez zespół"
+          ]
+        },
+        "3.0": {
+          "opis": "Systematyczne kaskadowanie z angażowaniem pracowników",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Angażuje pracowników w ustalanie priorytetów operacyjnych",
+            "Weryfikuje zrozumienie priorytetów przez zespół"
+          ]
+        },
+        "4.0": {
+          "opis": "Pełne kaskadowanie z budowaniem współodpowiedzialności",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Buduje współodpowiedzialność za priorytety",
+            "Pracownicy samodzielnie stosują kryteria priorytetyzacji"
+          ]
+        }
+      }
+    }
+  }
+}

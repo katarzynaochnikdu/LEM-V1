@@ -1,6 +1,7 @@
 {
   "module": "parse",
   "description": "Strukturyzacja odpowiedzi uczestnika na sekcje",
+  "system_prompt": "Jesteś ekspertem w analizie strukturalnej tekstów. Zwracasz wyłącznie poprawny JSON.",
   "active": {
     "delegowanie": "v1_initial",
     "podejmowanie_decyzji": "v1_decyzje",

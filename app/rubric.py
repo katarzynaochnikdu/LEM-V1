@@ -2,10 +2,17 @@
 Rubryka oceny kompetencji menedżerskich - System LEM
 Obsługuje 4 kompetencje: Delegowanie, Podejmowanie decyzji, Określanie priorytetów, Informacja zwrotna
 Oparta na dokumentacji 4 LEM.pdf
+
+Definicje ładowane z config/competencies/*.json (edytowalne, wersjonowane).
+Hardkodowane stałe poniżej służą wyłącznie jako fallback.
 """
 
+import json
+from pathlib import Path
 from typing import Dict, List
 from enum import Enum
+
+COMPETENCIES_DIR = Path(__file__).parent.parent / "config" / "competencies"
 
 
 class PoziomKompetencji(str, Enum):
@@ -1211,10 +1218,10 @@ WYMIARY_FEEDBACK = {
 
 
 # ---------------------------------------------------------------------------
-# REJESTR KOMPETENCJI - centralny punkt dostępu
+# ŁADOWANIE DEFINICJI Z JSON (z fallbackiem na hardkodowane stałe)
 # ---------------------------------------------------------------------------
 
-COMPETENCY_REGISTRY = {
+_HARDCODED_FALLBACK = {
     "delegowanie": {
         "nazwa": "Formułowanie celów i rezultatów - Delegowanie",
         "wymiary": WYMIARY_DELEGOWANIE,
@@ -1236,6 +1243,86 @@ COMPETENCY_REGISTRY = {
         "algorytm": ALGORYTM_FEEDBACK,
     },
 }
+
+
+def _convert_json_poziomy(wymiary_json: dict) -> dict:
+    """Konwertuje klucze poziomów z stringów ("0.0") na floaty (0.0)."""
+    result = {}
+    for key, wym in wymiary_json.items():
+        converted = {
+            "nazwa": wym["nazwa"],
+            "opis": wym["opis"],
+            "poziomy": {float(lvl): data for lvl, data in wym["poziomy"].items()},
+        }
+        result[key] = converted
+    return result
+
+
+def _load_competency_json(comp_id: str) -> dict | None:
+    """Ładuje definicję kompetencji z pliku JSON. Zwraca None jeśli brak."""
+    path = COMPETENCIES_DIR / f"{comp_id}.json"
+    if not path.exists():
+        return None
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    return {
+        "nazwa": data["nazwa"],
+        "wymiary": _convert_json_poziomy(data["wymiary"]),
+        "algorytm": data["algorytm"],
+        "_version": data.get("version", "1.0"),
+        "_source": data.get("source", ""),
+    }
+
+
+def _load_registry() -> dict:
+    """Ładuje rejestr kompetencji: z JSON jeśli istnieje, fallback na hardkod."""
+    registry = {}
+    for comp_id in ["delegowanie", "podejmowanie_decyzji", "okreslanie_priorytetow", "udzielanie_feedbacku"]:
+        loaded = _load_competency_json(comp_id)
+        if loaded:
+            registry[comp_id] = loaded
+        else:
+            registry[comp_id] = _HARDCODED_FALLBACK[comp_id]
+    return registry
+
+
+def reload_competency_registry():
+    """Przeładowuje rejestr kompetencji z plików JSON (wywoływane po edycji)."""
+    global COMPETENCY_REGISTRY
+    COMPETENCY_REGISTRY = _load_registry()
+
+
+def save_competency_definition(comp_id: str, data: dict) -> dict:
+    """Zapisuje definicję kompetencji do pliku JSON i przeładowuje rejestr."""
+    COMPETENCIES_DIR.mkdir(parents=True, exist_ok=True)
+    path = COMPETENCIES_DIR / f"{comp_id}.json"
+    
+    save_data = {
+        "id": comp_id,
+        "nazwa": data["nazwa"],
+        "version": data.get("_version", data.get("version", "1.0")),
+        "source": data.get("_source", data.get("source", "4 LEM.pdf")),
+        "algorytm": data["algorytm"],
+        "wymiary": {},
+    }
+    for key, wym in data["wymiary"].items():
+        save_data["wymiary"][key] = {
+            "nazwa": wym["nazwa"],
+            "opis": wym["opis"],
+            "poziomy": {
+                str(lvl): {"opis": p["opis"], "zachowania": p["zachowania"]}
+                for lvl, p in wym["poziomy"].items()
+            },
+        }
+    
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(save_data, f, indent=2, ensure_ascii=False)
+    
+    reload_competency_registry()
+    return {"competency": comp_id, "saved": True, "path": str(path)}
+
+
+COMPETENCY_REGISTRY = _load_registry()
 
 COMPETENCY_ALIASES = {
     "decyzje": "podejmowanie_decyzji",

@@ -1,6 +1,7 @@
 {
   "module": "feedback",
   "description": "Generowanie spersonalizowanego feedbacku rozwojowego",
+  "system_prompt": "Jesteś ekspertem w udzielaniu rozwojowego feedbacku menedżerom. Zwracasz wyłącznie poprawny JSON.",
   "active": {
     "delegowanie": "v1_initial",
     "podejmowanie_decyzji": "v1_decyzje",

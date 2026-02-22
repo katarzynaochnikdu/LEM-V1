@@ -10,7 +10,7 @@ from app.llm_client import get_llm_client, get_model_name, max_tokens_param, tem
 from app.json_utils import extract_json_from_text
 from app.models import ScoringResult, Feedback
 from app.rubric import get_wymiary_for_competency
-from app.prompt_manager import get_active_prompt_content
+from app.prompt_manager import get_active_prompt_content, get_system_prompt
 
 
 class FeedbackGenerator:
@@ -21,6 +21,7 @@ class FeedbackGenerator:
         self.client = get_llm_client()
         self.model = get_model_name()
         self.prompt_template = get_active_prompt_content("feedback", competency)
+        self.system_prompt = get_system_prompt("feedback")
         self.wymiary = get_wymiary_for_competency(competency)
 
     async def generate(self, scoring_result: ScoringResult) -> Feedback:
@@ -39,14 +40,8 @@ class FeedbackGenerator:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Jesteś ekspertem w udzielaniu rozwojowego feedbacku menedżerom. Zwracasz wyłącznie poprawny JSON."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": prompt}
                 ],
                 **temperature_param(0.7),
                 **max_tokens_param(3000)

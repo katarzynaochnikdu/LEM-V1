@@ -139,6 +139,12 @@ def get_active_prompt_content(module: str, competency: str = DEFAULT_COMPETENCY)
     return get_prompt(module, competency=competency)["content"]
 
 
+def get_system_prompt(module: str) -> str:
+    """Zwraca stały system prompt dla modułu (część nienaruszalna)."""
+    meta = _load_meta(module)
+    return meta.get("system_prompt", "")
+
+
 def save_prompt(
     module: str,
     version_name: str,

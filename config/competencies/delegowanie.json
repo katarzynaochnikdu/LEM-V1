@@ -1,0 +1,239 @@
+{
+  "id": "delegowanie",
+  "nazwa": "Formułowanie celów i rezultatów - Delegowanie",
+  "version": "1.0",
+  "source": "4 LEM.pdf",
+  "algorytm": [
+    "1. Nadaj intencje",
+    "2. Wyznacz poziom odpowiedzialności",
+    "3. Określ stan docelowy",
+    "4. Ustal metodę pomiaru",
+    "5. Określ proces monitorowania",
+    "6. Zaplanuj harmonogram",
+    "7. Sprawdź jak pracownik rozumie proces wykonania"
+  ],
+  "wymiary": {
+    "intencja": {
+      "nazwa": "Nadawanie intencji biznesowej",
+      "opis": "Czy menedżer nadaje sens strategiczny i biznesowy delegowanemu zadaniu",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie określa intencji zadania, brak kontekstu biznesowego",
+          "zachowania": [
+            "Nie wyjaśnia po co zadanie jest wykonywane",
+            "Brak powiązania z celami biznesowymi",
+            "Zadanie bez kontekstu strategicznego"
+          ]
+        },
+        "1.0": {
+          "opis": "Ustala intencje w sposób ogólny ('mamy problem, proszę się tym zająć')",
+          "zachowania": [
+            "Ogólnikowe wyjaśnienie celu",
+            "Brak precyzji w opisie znaczenia zadania",
+            "Minimalne odniesienie do kontekstu biznesowego"
+          ]
+        },
+        "2.0": {
+          "opis": "Jasno określa intencję biznesową zadania",
+          "zachowania": [
+            "Wyjaśnia cel biznesowy zadania",
+            "Wskazuje znaczenie dla zespołu/organizacji",
+            "Komunikuje kontekst podejmowanych działań"
+          ]
+        },
+        "3.0": {
+          "opis": "Intencja + powiązanie ze strategią organizacji",
+          "zachowania": [
+            "Łączy zadanie ze strategią organizacji",
+            "Wyjaśnia wpływ na kluczowe cele kwartalne/roczne",
+            "Pokazuje szerszy kontekst biznesowy"
+          ]
+        },
+        "4.0": {
+          "opis": "Intencja + strategia + korzyści rozwojowe dla pracownika",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Dodatkowo określa korzyści rozwojowe dla pracownika",
+            "Pokazuje jak zadanie rozwinie kompetencje pracownika"
+          ]
+        }
+      }
+    },
+    "stan_docelowy": {
+      "nazwa": "Określenie stanu docelowego",
+      "opis": "Precyzja w definiowaniu rezultatu końcowego zadania",
+      "poziomy": {
+        "0.0": {
+          "opis": "Formułuje zadania ogólnie bez określenia stanu docelowego, metod pomiaru ani czasu",
+          "zachowania": [
+            "Brak precyzji w opisie rezultatu",
+            "Nie określa co konkretnie ma zostać osiągnięte",
+            "Zadanie sformułowane w sposób niejasny"
+          ]
+        },
+        "1.0": {
+          "opis": "Definiuje głównie końcowe rezultaty bez wskazania sposobu realizacji",
+          "zachowania": [
+            "Określa tylko efekt końcowy",
+            "Brak opisu procesu dojścia do rezultatu",
+            "Minimalna struktura zadania"
+          ]
+        },
+        "2.0": {
+          "opis": "Precyzyjnie definiuje stan docelowy zdelegowanych zadań",
+          "zachowania": [
+            "Jasny opis rezultatu końcowego",
+            "Określa konkretne parametry sukcesu",
+            "Precyzyjne kryteria ukończenia zadania"
+          ]
+        },
+        "3.0": {
+          "opis": "Stan docelowy + rozróżnienie celów i rezultatów + wpływ pracownika",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Jasno rozróżnia cele i rezultaty zadań",
+            "Określa wpływ pracownika na osiągnięcie rezultatów"
+          ]
+        },
+        "4.0": {
+          "opis": "Pełna definicja stanu docelowego z metodą pomiaru na poziomie wskaźników, produktów i zachowań",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Definiuje stan docelowy wielowymiarowo",
+            "Komunikuje się w sposób ułatwiający pełne zrozumienie efektów końcowych"
+          ]
+        }
+      }
+    },
+    "metoda_pomiaru": {
+      "nazwa": "Ustalenie metody pomiaru",
+      "opis": "Czy określa konkretne wskaźniki, produkty lub zachowania do mierzenia sukcesu",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie określa metody pomiaru rezultatów",
+          "zachowania": ["Brak wskaźników sukcesu", "Nie ma kryteriów oceny wykonania", "Niemierzalny rezultat"]
+        },
+        "1.0": {
+          "opis": "Minimalna metoda pomiaru, głównie intuicyjna",
+          "zachowania": ["Ogólne kryteria sukcesu", "Brak konkretnych wskaźników", "Subiektywna ocena wykonania"]
+        },
+        "2.0": {
+          "opis": "Określa metodę pomiaru na podstawie wskaźników lub produktów",
+          "zachowania": ["Konkretne wskaźniki sukcesu", "Mierzalne kryteria wykonania", "Jasne parametry oceny"]
+        },
+        "3.0": {
+          "opis": "Metoda pomiaru na poziomie wskaźników, produktów i zachowań",
+          "zachowania": ["Wszystko z poziomu 2.0", "Dodatkowo określa oczekiwane zachowania", "Wielowymiarowa metoda oceny"]
+        },
+        "4.0": {
+          "opis": "Pełna metoda pomiaru + dostosowanie do kontekstu i kompetencji pracownika",
+          "zachowania": ["Wszystko z poziomu 3.0", "Dostosowana do poziomu kompetencji pracownika", "Uwzględnia kontekst biznesowy w metodzie pomiaru"]
+        }
+      }
+    },
+    "poziom_odpowiedzialnosci": {
+      "nazwa": "Wyznaczenie poziomu odpowiedzialności",
+      "opis": "Czy deleguje odpowiedzialność procesową, nie tylko zadania wykonawcze",
+      "poziomy": {
+        "0.0": {
+          "opis": "Unika delegowania jakichkolwiek zadań niezależnie od charakteru",
+          "zachowania": ["Nie deleguje zadań", "Zatrzymuje wszystkie decyzje przy sobie", "Brak zaufania do zespołu"]
+        },
+        "1.0": {
+          "opis": "Myli poziom odpowiedzialności z poziomem uprawnień i decyzyjnością",
+          "zachowania": ["Deleguje tylko wykonanie bez odpowiedzialności", "Nie daje uprawnień decyzyjnych", "Pracownik jest tylko wykonawcą"]
+        },
+        "2.0": {
+          "opis": "Deleguje zadania o niskim poziomie ryzyka/wpływu na biznes",
+          "zachowania": ["Deleguje rutynowe zadania", "Daje ograniczoną odpowiedzialność", "Zachowuje kontrolę nad decyzjami strategicznymi"]
+        },
+        "3.0": {
+          "opis": "Deleguje nie tylko zadania ale również odpowiedzialność procesową",
+          "zachowania": ["Wszystko z poziomu 2.0", "Przekazuje odpowiedzialność za proces", "Daje autonomię w podejmowaniu decyzji"]
+        },
+        "4.0": {
+          "opis": "Deleguje odpowiedzialność procesową w zgodzie ze strategią + zadania strategiczne",
+          "zachowania": ["Wszystko z poziomu 3.0", "Deleguje zadania o strategicznym charakterze", "Odpowiedzialność zgodna ze strategią organizacji", "Zwiększa motywację przez strategiczny charakter zadań"]
+        }
+      }
+    },
+    "harmonogram": {
+      "nazwa": "Zaplanowanie harmonogramu",
+      "opis": "Czy planuje harmonogram w konsultacji z pracownikiem",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie określa czasu realizacji zadania",
+          "zachowania": ["Brak ram czasowych", "Nie ustala deadline'ów", "Niejasne oczekiwania czasowe"]
+        },
+        "1.0": {
+          "opis": "Planuje harmonogram bez konsultacji z pracownikiem",
+          "zachowania": ["Narzuca terminy jednostronnie", "Nie pyta o możliwości pracownika", "Może frustrować zbyt wysokimi oczekiwaniami lub wydłużać czas oddania prac"]
+        },
+        "2.0": {
+          "opis": "Planuje harmonogram z uwzględnieniem opinii pracownika",
+          "zachowania": ["Konsultuje terminy", "Pyta o dostępność i możliwości", "Wspólnie ustala realistyczny harmonogram"]
+        },
+        "3.0": {
+          "opis": "Harmonogram konsultowany + kamienie milowe + elastyczność",
+          "zachowania": ["Wszystko z poziomu 2.0", "Określa kluczowe punkty kontrolne", "Zostawia przestrzeń na elastyczność"]
+        },
+        "4.0": {
+          "opis": "Pełna konsultacja harmonogramu z uwzględnieniem rozwoju kompetencji",
+          "zachowania": ["Wszystko z poziomu 3.0", "Harmonogram uwzględnia czas na naukę", "Dopasowany do tempa rozwoju pracownika"]
+        }
+      }
+    },
+    "monitorowanie": {
+      "nazwa": "Określenie procesu monitorowania",
+      "opis": "Czy definiuje plan monitorowania przebiegu zadań",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie definiuje planu monitorowania, co przekłada się na niższą motywację",
+          "zachowania": ["Brak punktów kontrolnych", "Nie określa momentów sprawdzenia postępów", "Pracownik pozostawiony sam sobie"]
+        },
+        "1.0": {
+          "opis": "Minimalny plan monitorowania, głównie na końcu zadania",
+          "zachowania": ["Sprawdza tylko efekt końcowy", "Brak monitorowania w trakcie realizacji", "Reaguje dopiero gdy jest problem"]
+        },
+        "2.0": {
+          "opis": "Określa proces monitorowania z konkretnymi punktami kontrolnymi",
+          "zachowania": ["Ustala momenty kontrolne", "Planuje regularne check-iny", "Jasny plan monitorowania postępów"]
+        },
+        "3.0": {
+          "opis": "Plan monitorowania + komunikacja etapowa podczas wdrażania",
+          "zachowania": ["Wszystko z poziomu 2.0", "Komunikuje się etapowo (nie pomija szczegółów)", "Regularny feedback w trakcie realizacji"]
+        },
+        "4.0": {
+          "opis": "Pełny plan monitorowania dostosowany do poziomu autonomii pracownika",
+          "zachowania": ["Wszystko z poziomu 3.0", "Dostosowuje częstotliwość monitorowania do kompetencji", "Balansuje między wsparciem a autonomią"]
+        }
+      }
+    },
+    "sprawdzenie_zrozumienia": {
+      "nazwa": "Sprawdzenie zrozumienia przez pracownika",
+      "opis": "Czy stosuje pytania otwarte aby sprawdzić jak pracownik rozumie zadanie",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie pyta pracownika o rozumienie rezultatów i procesu realizacji",
+          "zachowania": ["Zakłada że pracownik zrozumiał", "Nie weryfikuje zrozumienia", "Brak pytań sprawdzających"]
+        },
+        "1.0": {
+          "opis": "Pyta w sposób zamknięty ('Rozumiesz?', 'Jasne?')",
+          "zachowania": ["Pytania tak/nie", "Nie weryfikuje głębokości zrozumienia", "Powierzchowne sprawdzenie"]
+        },
+        "2.0": {
+          "opis": "Stosuje pytania otwarte o rozumienie zadania",
+          "zachowania": ["Pyta 'Jak rozumiesz to zadanie?'", "Weryfikuje zrozumienie celów", "Daje przestrzeń na pytania pracownika"]
+        },
+        "3.0": {
+          "opis": "Pytania otwarte o rozumienie procesu wykonania i rezultatów",
+          "zachowania": ["Wszystko z poziomu 2.0", "Każdorazowo pyta o rozumienie przebiegu prac", "Weryfikuje zrozumienie zarówno celów jak i procesu"]
+        },
+        "4.0": {
+          "opis": "Pełna weryfikacja zrozumienia + zachęcanie do pytań i współtworzenia planu",
+          "zachowania": ["Wszystko z poziomu 3.0", "Zachęca pracowników do opiniowania", "Każdorazowo pyta o pomysły w trakcie planowania", "Współtworzy plan wykonania z pracownikiem"]
+        }
+      }
+    }
+  }
+}

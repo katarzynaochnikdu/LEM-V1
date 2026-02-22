@@ -10,7 +10,7 @@ from pathlib import Path
 from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.models import MappedResponse, ScoringResult, DimensionScore
 from app.rubric import get_wymiary_for_competency, get_poziom_kompetencji
-from app.prompt_manager import get_active_prompt_content
+from app.prompt_manager import get_active_prompt_content, get_system_prompt
 
 
 class CompetencyScorer:
@@ -30,6 +30,7 @@ class CompetencyScorer:
             self.weights = weights_data[competency]
 
         self.prompt_template = get_active_prompt_content("score", competency)
+        self.system_prompt = get_system_prompt("score")
 
     async def score(self, mapped_response: MappedResponse) -> ScoringResult:
         """Ocenia kompetencję na podstawie zmapowanej odpowiedzi."""
@@ -86,14 +87,8 @@ class CompetencyScorer:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Jesteś ekspertem w ocenie kompetencji menedżerskich. Zwracasz tylko liczbę z zakresu 0.0-1.0."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": prompt}
                 ],
                 **temperature_param(0.1),
                 **max_tokens_param(10)

@@ -1,0 +1,245 @@
+{
+  "id": "udzielanie_feedbacku",
+  "nazwa": "Udzielanie informacji zwrotnej",
+  "version": "1.0",
+  "source": "4 LEM.pdf",
+  "algorytm": [
+    "1. Przedstaw fakty / zachowania pracownika",
+    "2. Określ swoje emocje względem zachowań pracownika",
+    "3. Podaj konsekwencje zachowań pracownika",
+    "4. Przekaż swoje oczekiwania względem pracownika",
+    "5. Sprawdź jak pracownik zrozumiał informację zwrotną"
+  ],
+  "wymiary": {
+    "fakty_zachowania": {
+      "nazwa": "Przedstawianie faktów i zachowań pracownika",
+      "opis": "Czy menedżer precyzyjnie opisuje konkretne zachowania pracownika oparte na faktach",
+      "poziomy": {
+        "0.0": {
+          "opis": "Stosuje ogólniki i abstrakcje zamiast konkretnych faktów",
+          "zachowania": [
+            "Stosuje informacje zwrotne które bazują na ogólnikach i mogą silnie zdemotywować pracownika ('nigdy nie robisz nic na czas')",
+            "Formułuje informacje na wysokim poziomie abstrakcji trudne dla pracownika w interpretacji ('nie zachowuj się jak przedszkolak')",
+            "Brak odniesienia do konkretnych zachowań"
+          ]
+        },
+        "1.0": {
+          "opis": "Częściowo opisuje zachowania ale z dużą dozą ogólników",
+          "zachowania": [
+            "Miesza fakty z opiniami i interpretacjami",
+            "Nie korzysta regularnie z informacji zwrotnej, stosuje ją głównie podczas formalnych ocen okresowych lub publicznych wystąpień",
+            "Opisy zachowań nieprecyzyjne"
+          ]
+        },
+        "2.0": {
+          "opis": "Potrafi precyzyjnie zdefiniować skuteczne i nieskuteczne zachowania",
+          "zachowania": [
+            "Potrafi precyzyjnie zdefiniować skuteczne i/lub nieskuteczne zachowania pracownika",
+            "Oddziela fakty od interpretacji",
+            "Opisuje konkretne sytuacje i zachowania"
+          ]
+        },
+        "3.0": {
+          "opis": "Precyzyjne fakty + prowadzenie rozmowy głównie poprzez pytania",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Potrafi prowadzić informację zwrotną korzystając głównie z pytań",
+            "Angażuje pracownika w refleksję nad zachowaniami"
+          ]
+        },
+        "4.0": {
+          "opis": "Mistrzowskie opisywanie zachowań z dostosowaniem do kompetencji pracownika",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Komunikuje się w sposób który opisuje jasno zachowania oraz rezultaty które mają zostać osiągnięte poprzez ich zmianę",
+            "Dostosowuje sposób udzielania informacji zwrotnej do kompetencji pracownika"
+          ]
+        }
+      }
+    },
+    "emocje": {
+      "nazwa": "Określanie emocji względem zachowań pracownika",
+      "opis": "Czy menedżer komunikuje swoje emocje w sposób konstruktywny bez podważania poczucia skuteczności",
+      "poziomy": {
+        "0.0": {
+          "opis": "Używa słów budzących negatywne emocje, podważa poczucie skuteczności",
+          "zachowania": [
+            "Informacje przekazuje słowami które budzą negatywne emocje i podważają poczucie skuteczności pracownika (np. błąd, porażka)",
+            "Komunikacja emocjonalna destrukcyjna",
+            "Atakuje osobę zamiast zachowań"
+          ]
+        },
+        "1.0": {
+          "opis": "Nadmiernie skupia się na emocjach utrudniając zrozumienie oczekiwań",
+          "zachowania": [
+            "Nadmiernie skupia się na emocjach w przekazie co utrudnia pracownikowi zrozumienie oczekiwań oraz frustruje pracownika",
+            "Emocje dominują nad przekazem merytorycznym",
+            "Brak równowagi między emocjami a faktami"
+          ]
+        },
+        "2.0": {
+          "opis": "Komunikuje emocje w sposób zrównoważony bez podważania pracownika",
+          "zachowania": [
+            "Komunikuje swoje emocje bez podważania wartości pracownika",
+            "Używa konstruktywnego języka emocji",
+            "Zachowuje równowagę między emocjami a faktami"
+          ]
+        },
+        "3.0": {
+          "opis": "Emocje jako element konstruktywnej rozmowy wzmacniający przekaz",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Wykorzystuje emocje jako element wzmacniający przekaz",
+            "Tworzy bezpieczną przestrzeń do rozmowy"
+          ]
+        },
+        "4.0": {
+          "opis": "Mistrzowska komunikacja emocji budująca relację i zaufanie",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Emocje budują relację i zaufanie",
+            "Dostosowuje komunikację emocji do osobowości pracownika"
+          ]
+        }
+      }
+    },
+    "konsekwencje": {
+      "nazwa": "Podawanie konsekwencji zachowań pracownika",
+      "opis": "Czy menedżer wskazuje i wyjaśnia następstwa zachowań zarówno skutecznych jak i nieskutecznych",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie podaje konsekwencji zachowań pracownika",
+          "zachowania": [
+            "Nie wyjaśnia jakie są następstwa zachowań pracownika",
+            "Pracownik nie rozumie wpływu swoich zachowań",
+            "Brak informacji o konsekwencjach"
+          ]
+        },
+        "1.0": {
+          "opis": "Podaje konsekwencje tylko zachowań do skorygowania",
+          "zachowania": [
+            "Podaje konsekwencje ale z reguły tylko tych zachowań które należy skorygować",
+            "Brak informacji o pozytywnych następstwach",
+            "Jednostronne skupienie na negatywach"
+          ]
+        },
+        "2.0": {
+          "opis": "Wskazuje konsekwencje zarówno pozytywnych jak i negatywnych zachowań",
+          "zachowania": [
+            "Podaje konsekwencje zachowań skutecznych i nieskutecznych",
+            "Wyjaśnia wpływ zachowań na wyniki",
+            "Równowaga korygującej i wzmacniającej informacji"
+          ]
+        },
+        "3.0": {
+          "opis": "Każdorazowo wskazuje i wyjaśnia następstwa zachowań obu typów",
+          "zachowania": [
+            "Każdorazowo wskazuje i wyjaśnia następstwa zachowań zarówno nieskutecznych jak i skutecznych",
+            "Łączy konsekwencje z celami zespołu/organizacji",
+            "Pokazuje długoterminowe następstwa zachowań"
+          ]
+        },
+        "4.0": {
+          "opis": "Kompleksowe wyjaśnianie konsekwencji z angażowaniem pracownika w refleksję",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Angażuje pracownika w samodzielne odkrywanie konsekwencji",
+            "Buduje świadomość wpływu zachowań na otoczenie"
+          ]
+        }
+      }
+    },
+    "oczekiwania": {
+      "nazwa": "Przekazywanie oczekiwań względem pracownika",
+      "opis": "Czy menedżer jasno określa jak pracownik powinien działać po otrzymaniu informacji zwrotnej",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie przekazuje oczekiwań co do przyszłych zachowań",
+          "zachowania": [
+            "Nie mówi pracownikowi co powinien zmienić",
+            "Brak jasnych oczekiwań po feedbacku",
+            "Pracownik nie wie jak działać dalej"
+          ]
+        },
+        "1.0": {
+          "opis": "Oczekiwania ogólnikowe, trudne do przełożenia na działanie",
+          "zachowania": [
+            "Formułuje oczekiwania w sposób ogólny",
+            "Pracownik ma trudność z interpretacją oczekiwań",
+            "Brak konkretnych wskazówek"
+          ]
+        },
+        "2.0": {
+          "opis": "Określa jak pracownik powinien działać od momentu otrzymania feedbacku",
+          "zachowania": [
+            "Określa jak pracownik powinien działać od momentu otrzymania informacji zwrotnej w porównaniu do zachowań względem których otrzymał informację zwrotną",
+            "Konkretne i mierzalne oczekiwania",
+            "Jasny plan zmiany zachowań"
+          ]
+        },
+        "3.0": {
+          "opis": "Precyzyjne oczekiwania z opisem pożądanych rezultatów i zachowań",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Opisuje jasno zachowania oraz rezultaty które mają zostać osiągnięte poprzez zmianę",
+            "Wspiera pracownika w planowaniu rozwoju"
+          ]
+        },
+        "4.0": {
+          "opis": "Oczekiwania dopasowane do kompetencji pracownika z planem rozwoju",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Dostosowuje oczekiwania do poziomu kompetencji pracownika",
+            "Współtworzy z pracownikiem plan osiągnięcia oczekiwań"
+          ]
+        }
+      }
+    },
+    "sprawdzenie_zrozumienia_fb": {
+      "nazwa": "Sprawdzenie zrozumienia informacji zwrotnej",
+      "opis": "Czy menedżer weryfikuje jak pracownik zrozumiał przekazaną informację zwrotną",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie weryfikuje czy pracownik zrozumiał informację zwrotną",
+          "zachowania": [
+            "Zakłada że pracownik zrozumiał feedback",
+            "Nie sprawdza zrozumienia",
+            "Brak pytań weryfikujących"
+          ]
+        },
+        "1.0": {
+          "opis": "Powierzchowne sprawdzenie ('Rozumiesz?', 'OK?')",
+          "zachowania": [
+            "Pyta zamknięte pytania weryfikujące",
+            "Nie daje przestrzeni na reakcję pracownika",
+            "Formalne sprawdzenie bez głębi"
+          ]
+        },
+        "2.0": {
+          "opis": "Stosuje pytania otwarte aby sprawdzić zrozumienie feedbacku",
+          "zachowania": [
+            "Pyta pracownika otwartymi pytaniami o zrozumienie",
+            "Daje przestrzeń na pytania i wątpliwości",
+            "Weryfikuje zrozumienie kluczowych punktów"
+          ]
+        },
+        "3.0": {
+          "opis": "Dogłębna weryfikacja zrozumienia z planem dalszych kroków",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Prosi pracownika o powtórzenie kluczowych ustaleń",
+            "Wspólnie ustala plan dalszych kroków"
+          ]
+        },
+        "4.0": {
+          "opis": "Pełna weryfikacja + follow-up i monitoring zmiany zachowań",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Planuje follow-up spotkania",
+            "Monitoruje zmianę zachowań i daje dodatkowy feedback"
+          ]
+        }
+      }
+    }
+  }
+}

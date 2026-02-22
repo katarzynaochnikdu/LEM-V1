@@ -1,6 +1,7 @@
 {
   "module": "score",
   "description": "Ocena jakości realizacji wymiarów kompetencji",
+  "system_prompt": "Jesteś ekspertem w ocenie kompetencji menedżerskich. Zwracasz tylko liczbę z zakresu 0.0-1.0.",
   "active": {
     "delegowanie": "v1_initial",
     "podejmowanie_decyzji": "v1_decyzje",

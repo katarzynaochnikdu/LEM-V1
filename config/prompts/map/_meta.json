@@ -1,6 +1,7 @@
 {
   "module": "map",
   "description": "Mapowanie odpowiedzi na wymiary kompetencji z ekstrakcją cytatów",
+  "system_prompt": "Jesteś ekspertem w ocenie kompetencji menedżerskich. Zwracasz wyłącznie poprawny JSON z ekstrakcją cytatów.",
   "active": {
     "delegowanie": "v1_initial",
     "podejmowanie_decyzji": "v1_decyzje",

@@ -9,7 +9,7 @@ from pathlib import Path
 from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.json_utils import extract_json_from_text
 from app.models import ParsedResponse
-from app.prompt_manager import get_active_prompt_content
+from app.prompt_manager import get_active_prompt_content, get_system_prompt
 
 PARSE_SECTIONS = {
     "delegowanie": {
@@ -66,6 +66,7 @@ class ResponseParser:
         self.client = get_llm_client()
         self.model = get_model_name()
         self.prompt_template = get_active_prompt_content("parse", competency)
+        self.system_prompt = get_system_prompt("parse")
         self.sections_def = get_sections_for_competency(competency)
 
     async def parse(self, response_text: str) -> ParsedResponse:
@@ -76,14 +77,8 @@ class ResponseParser:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "Jesteś ekspertem w analizie strukturalnej tekstów. Zwracasz wyłącznie poprawny JSON."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "system", "content": self.system_prompt},
+                    {"role": "user", "content": prompt}
                 ],
                 **temperature_param(0.1),
                 **max_tokens_param(2000)

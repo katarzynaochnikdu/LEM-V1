@@ -1,0 +1,292 @@
+{
+  "id": "podejmowanie_decyzji",
+  "nazwa": "Podejmowanie decyzji na bazie kryteriów",
+  "version": "1.0",
+  "source": "4 LEM.pdf",
+  "algorytm": [
+    "1. Zdefiniuj rezultaty i zakres kluczowej decyzji",
+    "2. Zmapuj otoczenie i kontekst podejmowanej decyzji",
+    "3. Określ i poranguj kryteria decyzyjne",
+    "4. Zmapuj ryzyka podejmowanej decyzji",
+    "5. Przeanalizuj alternatywne scenariusze planowanej decyzji",
+    "6. Podejmij decyzję określając sposób zakomunikowania jej pracownikom"
+  ],
+  "wymiary": {
+    "rezultaty_zakres": {
+      "nazwa": "Definiowanie rezultatów i zakresu decyzji",
+      "opis": "Czy menedżer tworzy listę kluczowych decyzji strategicznych i definiuje ich rezultaty oraz zakres",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie tworzy listy kluczowych decyzji strategicznych, unika określania efektów decyzji",
+          "zachowania": [
+            "Nie tworzy listy kluczowych decyzji strategicznych istotnych z punktu widzenia rozwoju obszaru biznesu",
+            "Unika określania efektów podejmowanych przez siebie decyzji",
+            "Nie definiuje zakresu (granic) decyzji jakie ma zamiar podjąć"
+          ]
+        },
+        "1.0": {
+          "opis": "Definiuje rezultaty decyzji w sposób ogólnikowy, bez precyzyjnego zakresu",
+          "zachowania": [
+            "Ogólnikowo określa efekty planowanych decyzji",
+            "Nie precyzuje granic decyzji",
+            "Brak powiązania decyzji z celami strategicznymi"
+          ]
+        },
+        "2.0": {
+          "opis": "Posiada zdefiniowane rezultaty planowanych decyzji",
+          "zachowania": [
+            "Posiada zdefiniowane rezultaty planowanych decyzji",
+            "Określa zakres decyzji którą planuje podjąć",
+            "Łączy decyzję z kontekstem biznesowym"
+          ]
+        },
+        "3.0": {
+          "opis": "Precyzyjnie definiuje rezultaty i zakres z uwzględnieniem wpływu na strategię",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Powiązuje rezultaty decyzji z celami strategicznymi organizacji",
+            "Jasno komunikuje zakres i granice decyzji interesariuszom"
+          ]
+        },
+        "4.0": {
+          "opis": "Pełna definicja rezultatów z analizą wpływu na wszystkich interesariuszy",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Analizuje wpływ decyzji na wszystkich interesariuszy",
+            "Zachęca pracowników do opiniowania i wspierania wdrożenia decyzji"
+          ]
+        }
+      }
+    },
+    "kontekst_otoczenie": {
+      "nazwa": "Mapowanie otoczenia i kontekstu decyzji",
+      "opis": "Czy menedżer analizuje otoczenie biznesowe i kontekst podczas podejmowania decyzji",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie analizuje otoczenia biznesowego podczas podejmowania decyzji",
+          "zachowania": [
+            "Nie precyzuje kontekstu podejmowanych przez siebie decyzji",
+            "Nie analizuje otoczenia biznesowego podczas podejmowanych decyzji",
+            "Ignoruje czynniki zewnętrzne wpływające na decyzję"
+          ]
+        },
+        "1.0": {
+          "opis": "Sprawdza kontekst decyzji bez uwzględnienia wszystkich istotnych informacji",
+          "zachowania": [
+            "Sprawdza kontekst podejmowanych decyzji bez uwzględnienia wszystkich istotnych informacji i/lub danych",
+            "Pomija część kluczowych czynników otoczenia",
+            "Powierzchowna analiza kontekstu"
+          ]
+        },
+        "2.0": {
+          "opis": "Posiada analizę otoczenia biznesowego podczas podejmowania decyzji",
+          "zachowania": [
+            "Posiada analizę otoczenia biznesowego podczas podejmowania przez siebie decyzji",
+            "Uwzględnia kluczowe dane i informacje",
+            "Bierze pod uwagę kontekst rynkowy i organizacyjny"
+          ]
+        },
+        "3.0": {
+          "opis": "Dogłębna analiza otoczenia z uwzględnieniem trendów i zmian",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Analizuje trendy i zmiany w otoczeniu biznesowym",
+            "Uwzględnia perspektywy różnych interesariuszy"
+          ]
+        },
+        "4.0": {
+          "opis": "Kompleksowa analiza kontekstu z prognozowaniem zmian otoczenia",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Prognozuje zmiany w otoczeniu i ich wpływ na decyzję",
+            "Każdorazowo pyta pracowników o ich opinie i pomysły w trakcie planowania decyzji"
+          ]
+        }
+      }
+    },
+    "kryteria_decyzyjne": {
+      "nazwa": "Określanie i rangowanie kryteriów decyzyjnych",
+      "opis": "Czy menedżer precyzyjnie określa kryteria decyzyjne i nadaje im wagi",
+      "poziomy": {
+        "0.0": {
+          "opis": "Kryteria decyzyjne nie są określone, decyzje intuicyjne lub emocjonalne",
+          "zachowania": [
+            "Kryteria decyzyjne nie są jednoznacznie określone",
+            "Wiele kryteriów ma charakter intuicyjny i/lub emocjonalny",
+            "Brak systematycznego podejścia do kryteriów"
+          ]
+        },
+        "1.0": {
+          "opis": "Posiada krótką listę kryteriów bez jasnego rangowania",
+          "zachowania": [
+            "Posiada wyłącznie krótką listę opcji oraz założeń decyzyjnych",
+            "Nie różnicuje wagi poszczególnych kryteriów",
+            "Kryteria niespójne lub niekompletne"
+          ]
+        },
+        "2.0": {
+          "opis": "Precyzyjnie określa różnorodne kryteria decyzyjne",
+          "zachowania": [
+            "Precyzyjnie określa różnorodne kryteria decyzyjne",
+            "Określa wagi poszczególnych kryteriów na podejmowane przez siebie decyzje",
+            "Kryteria oparte na danych i faktach"
+          ]
+        },
+        "3.0": {
+          "opis": "Kryteria z wagami + systematyczna metoda oceny opcji",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Stosuje systematyczną metodę oceny opcji według kryteriów",
+            "Weryfikuje kryteria z interesariuszami"
+          ]
+        },
+        "4.0": {
+          "opis": "Zaawansowany system kryteriów dostosowany do kontekstu z zaangażowaniem zespołu",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Zachęca pracowników do opiniowania kryteriów",
+            "Dostosowuje kryteria do zmiennego kontekstu biznesowego"
+          ]
+        }
+      }
+    },
+    "mapowanie_ryzyk": {
+      "nazwa": "Mapowanie ryzyk podejmowanej decyzji",
+      "opis": "Czy menedżer identyfikuje i analizuje ryzyka związane z decyzją przed jej podjęciem",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie mapuje ryzyk decyzji, ignoruje potencjalne zagrożenia",
+          "zachowania": [
+            "Nie analizuje ryzyk przed podjęciem decyzji",
+            "Ignoruje potencjalne konsekwencje negatywne",
+            "Brak świadomości zagrożeń"
+          ]
+        },
+        "1.0": {
+          "opis": "Mapuje ryzyka dopiero na etapie komunikowania decyzji do zespołu",
+          "zachowania": [
+            "Mapuje ryzyka dopiero na etapie komunikowania decyzji do zespołu",
+            "Reaktywne podejście do ryzyk",
+            "Analiza ryzyk po fakcie"
+          ]
+        },
+        "2.0": {
+          "opis": "Identyfikuje kluczowe ryzyka przed podjęciem decyzji",
+          "zachowania": [
+            "Identyfikuje główne ryzyka przed decyzją",
+            "Przygotowuje podstawowy plan mitygacji",
+            "Dostosowuje decyzje do zmapowanych wcześniej ryzyk"
+          ]
+        },
+        "3.0": {
+          "opis": "Systematyczna analiza ryzyk z planem mitygacji i monitoringu",
+          "zachowania": [
+            "Wszystko z poziomu 2.0",
+            "Systematycznie analizuje ryzyka na wielu poziomach",
+            "Opracowuje plan monitorowania i reagowania na ryzyka"
+          ]
+        },
+        "4.0": {
+          "opis": "Proaktywne zarządzanie ryzykiem z angażowaniem zespołu w identyfikację zagrożeń",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Angażuje zespół w identyfikację i ocenę ryzyk",
+            "Tworzy scenariusze reakcji na zmaterializowane ryzyka"
+          ]
+        }
+      }
+    },
+    "alternatywne_scenariusze": {
+      "nazwa": "Analiza alternatywnych scenariuszy",
+      "opis": "Czy menedżer analizuje alternatywne scenariusze i opcje decyzyjne",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie analizuje alternatywnych scenariuszy, jedno rozwiązanie",
+          "zachowania": [
+            "Nie rozważa alternatywnych opcji decyzyjnych",
+            "Trzyma się jednego scenariusza bez refleksji",
+            "Brak analizy wariantowej"
+          ]
+        },
+        "1.0": {
+          "opis": "Posiada krótką listę opcji bez pogłębionej analizy",
+          "zachowania": [
+            "Posiada wyłącznie krótką listę opcji oraz założeń decyzyjnych",
+            "Nie analizuje możliwych opcji decyzyjnych trzymając się raz ustalonych kryteriów",
+            "Powierzchowna analiza alternatyw"
+          ]
+        },
+        "2.0": {
+          "opis": "Analizuje kilka opcji decyzyjnych z ich konsekwencjami",
+          "zachowania": [
+            "Rozważa kilka alternatywnych opcji",
+            "Analizuje konsekwencje każdej opcji",
+            "Porównuje opcje według ustalonych kryteriów"
+          ]
+        },
+        "3.0": {
+          "opis": "Posiada kilka alternatywnych scenariuszy z dostosowanymi opcjami",
+          "zachowania": [
+            "Posiada kilka alternatywnych scenariuszy przyszłych wydarzeń",
+            "Dostosowuje opcje decyzji do różnych scenariuszy",
+            "Przygotowuje plany awaryjne"
+          ]
+        },
+        "4.0": {
+          "opis": "Kompleksowa analiza scenariuszy z zaangażowaniem zespołu i elastycznością",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Angażuje zespół w tworzenie scenariuszy",
+            "Buduje elastyczne strategie pozwalające na szybką zmianę kursu"
+          ]
+        }
+      }
+    },
+    "komunikacja_decyzji": {
+      "nazwa": "Komunikowanie i wdrażanie decyzji",
+      "opis": "Czy menedżer skutecznie komunikuje decyzję i jej strategiczne znaczenie pracownikom",
+      "poziomy": {
+        "0.0": {
+          "opis": "Nie komunikuje decyzji lub komunikuje bez uzasadnienia",
+          "zachowania": [
+            "Nie informuje zespołu o podjętych decyzjach",
+            "Brak wyjaśnienia powodów decyzji",
+            "Decyzje wdrażane bez komunikacji"
+          ]
+        },
+        "1.0": {
+          "opis": "Komunikuje decyzje bez podania ich strategicznego znaczenia",
+          "zachowania": [
+            "Komunikuje swoje decyzje bez podania ich strategicznego znaczenia",
+            "Nie komunikuje z jakich powodów należy podjąć działania",
+            "Brak kontekstu przy komunikacji decyzji"
+          ]
+        },
+        "2.0": {
+          "opis": "Komunikuje decyzje z podstawowym uzasadnieniem",
+          "zachowania": [
+            "Wyjaśnia podstawowe powody decyzji",
+            "Komunikuje oczekiwane działania",
+            "Informuje o konsekwencjach decyzji dla zespołu"
+          ]
+        },
+        "3.0": {
+          "opis": "Komunikuje się etapowo, nie pomija szczegółów przy wdrażaniu zmian",
+          "zachowania": [
+            "Komunikuje się etapowo (nie pomija szczegółów) podczas wdrażania zmian",
+            "Wyjaśnia strategiczne znaczenie decyzji",
+            "Angażuje zespół we wdrożenie"
+          ]
+        },
+        "4.0": {
+          "opis": "Pełna komunikacja z angażowaniem pracowników w planowanie i wdrożenie",
+          "zachowania": [
+            "Wszystko z poziomu 3.0",
+            "Każdorazowo pyta pracowników o ich opinie i pomysły w trakcie planowania decyzji oraz ich wdrożenia",
+            "Buduje zaangażowanie i współodpowiedzialność za decyzję"
+          ]
+        }
+      }
+    }
+  }
+}

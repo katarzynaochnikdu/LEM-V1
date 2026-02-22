@@ -50,6 +50,7 @@ from app.prompt_manager import (
     save_prompt as pm_save_prompt,
     activate_version as pm_activate_version,
     get_active_versions as pm_get_active_versions,
+    get_system_prompt as pm_get_system_prompt,
 )
 from app.llm_client import get_llm_runtime, set_llm_runtime
 from app.cost_calculator import (
@@ -504,7 +505,7 @@ async def diagnostic_parse(request: DiagnosticParseRequest, http_request: Reques
             "raw_text": parsed.raw_text,
             "competency": request.competency,
             "_prompt": {
-                "system": "Jesteś ekspertem w analizie strukturalnej tekstów. Zwracasz wyłącznie poprawny JSON.",
+                "system": parser.system_prompt,
                 "user": prompt_sent,
             },
             "_prompt_meta": {
@@ -562,7 +563,7 @@ async def diagnostic_map(request: dict, http_request: Request):
             "parsed_response": {"sections": parsed.sections, "raw_text": parsed.raw_text},
             "competency": competency,
             "_prompt": {
-                "system": "Jesteś ekspertem w ocenie kompetencji menedżerskich. Zwracasz wyłącznie poprawny JSON z ekstrakcją cytatów.",
+                "system": mapper.system_prompt,
                 "user": prompt_sent,
             },
             "_prompt_meta": {
@@ -651,7 +652,7 @@ async def diagnostic_score(request: dict, http_request: Request):
             } for k, v in mapped.evidence.items()},
             "parsed_response": {"sections": parsed.sections, "raw_text": parsed.raw_text},
             "_prompt": {
-                "system": "Jesteś ekspertem w ocenie kompetencji menedżerskich. Zwracasz tylko liczbę z zakresu 0.0-1.0.",
+                "system": scorer.system_prompt,
                 "per_dimension": score_prompts,
             },
             "_prompt_meta": {
@@ -730,7 +731,7 @@ async def diagnostic_feedback(request: dict, http_request: Request):
             "obszary_rozwoju": feedback.obszary_rozwoju,
             "competency": competency,
             "_prompt": {
-                "system": "Jesteś ekspertem w udzielaniu rozwojowego feedbacku menedżerom. Zwracasz wyłącznie poprawny JSON.",
+                "system": fg.system_prompt,
                 "user": prompt_sent,
             },
             "_prompt_meta": {
@@ -872,6 +873,88 @@ async def get_db_stats(request: Request):
 
 
 # ---------------------------------------------------------------------------
+# COMPETENCY DEFINITIONS (editable rubric)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/competencies")
+async def list_competencies(request: Request):
+    """Zwraca listę kompetencji z ich metadanymi."""
+    from app.rubric import COMPETENCY_REGISTRY
+    result = []
+    for comp_id, comp in COMPETENCY_REGISTRY.items():
+        result.append({
+            "id": comp_id,
+            "short_id": competency_short_name(comp_id),
+            "nazwa": comp["nazwa"],
+            "wymiary_count": len(comp["wymiary"]),
+            "algorytm_steps": len(comp["algorytm"]),
+            "version": comp.get("_version", "1.0"),
+            "source": comp.get("_source", ""),
+        })
+    return result
+
+
+@app.get("/api/competencies/{competency_id}")
+async def get_competency_definition(competency_id: str, request: Request):
+    """Zwraca pełną definicję kompetencji (wymiary, algorytm, poziomy)."""
+    try:
+        full_id = resolve_competency(competency_id)
+        info = get_competency_info(full_id)
+        wymiary_out = {}
+        for key, wym in info["wymiary"].items():
+            wymiary_out[key] = {
+                "nazwa": wym["nazwa"],
+                "opis": wym["opis"],
+                "poziomy": {
+                    str(lvl): {"opis": data["opis"], "zachowania": data["zachowania"]}
+                    for lvl, data in wym["poziomy"].items()
+                },
+            }
+        return {
+            "id": full_id,
+            "short_id": competency_short_name(full_id),
+            "nazwa": info["nazwa"],
+            "algorytm": info["algorytm"],
+            "wymiary": wymiary_out,
+            "version": info.get("_version", "1.0"),
+            "source": info.get("_source", ""),
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.put("/api/competencies/{competency_id}")
+async def update_competency_definition(competency_id: str, req: dict, request: Request):
+    """Zapisuje zmodyfikowaną definicję kompetencji."""
+    from app.rubric import save_competency_definition
+    try:
+        full_id = resolve_competency(competency_id)
+        wymiary_in = {}
+        for key, wym in req.get("wymiary", {}).items():
+            wymiary_in[key] = {
+                "nazwa": wym["nazwa"],
+                "opis": wym["opis"],
+                "poziomy": {
+                    float(lvl): {"opis": data["opis"], "zachowania": data["zachowania"]}
+                    for lvl, data in wym["poziomy"].items()
+                },
+            }
+        data = {
+            "nazwa": req.get("nazwa", ""),
+            "algorytm": req.get("algorytm", []),
+            "wymiary": wymiary_in,
+            "version": req.get("version", "1.0"),
+            "source": req.get("source", "4 LEM.pdf"),
+        }
+        user = getattr(request.state, "user", {})
+        log_activity(action="update_competency_def", actor=user.get("username", "?"), details={"competency": full_id})
+        result = save_competency_definition(full_id, data)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
 # PROMPTS
 # ---------------------------------------------------------------------------
 
@@ -894,6 +977,7 @@ async def get_module_prompts(module: str, request: Request, competency: str = "d
         return {
             "module": module,
             "competency": competency,
+            "system_prompt": pm_get_system_prompt(module),
             "active_version": active["version"],
             "active_content": active["content"],
             "versions": filtered,
