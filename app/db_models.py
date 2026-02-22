@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from app.database import get_connection
@@ -11,7 +11,7 @@ RUN_REF_PATTERN = re.compile(r"^(?:run_)?(\d+)(?:\.json)?$")
 
 
 def _now_iso() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _dumps(data: Any) -> str:
