@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 
 from app.models import (
@@ -54,6 +54,19 @@ from app.cost_calculator import (
     estimate_evaluation_cost,
     get_estimated_tokens_per_evaluation,
 )
+from app.exporters import export_report, get_content_type, get_filename
+from app.database import init_db
+from app.db_models import (
+    save_assessment as db_save_assessment,
+    list_assessments as db_list_assessments,
+    get_assessment_by_ref as db_get_assessment_by_ref,
+    get_assessment_by_id as db_get_assessment_by_id,
+    compare_assessments as db_compare_assessments,
+    get_assessment_stats as db_get_assessment_stats,
+    save_run as db_save_run,
+    list_runs as db_list_runs,
+    get_run_by_ref as db_get_run_by_ref,
+)
 
 load_dotenv()
 
@@ -95,6 +108,7 @@ async def auth_middleware(request: Request, call_next):
 @app.on_event("startup")
 async def startup():
     ensure_admin_exists()
+    await init_db()
 
 
 # ---------------------------------------------------------------------------
@@ -435,6 +449,14 @@ class DiagnosticParseRequest(BaseModel):
     competency: str = Field(default="delegowanie")
 
 
+class ExportRequest(BaseModel):
+    participant_id: str = Field(default="session")
+    generated_at: Optional[str] = Field(default=None)
+    response_text: str = Field(default="")
+    selected_competencies: List[str] = Field(default_factory=list)
+    results: Dict[str, Any] = Field(default_factory=dict)
+
+
 @app.post("/api/diagnostic/parse")
 async def diagnostic_parse(request: DiagnosticParseRequest):
     """Krok 1: Strukturyzacja odpowiedzi na sekcje"""
@@ -694,31 +716,17 @@ class SaveSessionRequest(BaseModel):
 
 @app.post("/api/sessions/save")
 async def save_session(req: SaveSessionRequest, request: Request):
-    """Zapisuje pełną sesję diagnostyczną do pliku JSON."""
-    from datetime import datetime
+    """Zapisuje pełną sesję diagnostyczną do bazy SQLite."""
     user = getattr(request.state, "user", {})
     username = user.get("username", "anonymous")
-
-    sessions_dir = Path(__file__).parent.parent / "sessions"
-    sessions_dir.mkdir(exist_ok=True)
-
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{ts}_{req.participant_id}_{username}.json"
-    filepath = sessions_dir / filename
-
-    session_data = {
-        "saved_at": datetime.now().isoformat(),
-        "saved_by": username,
-        "participant_id": req.participant_id,
-        "competency": req.competency,
-        "steps": req.steps,
-        "prompt_versions": pm_get_active_versions(req.competency),
-    }
-
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(session_data, f, indent=2, ensure_ascii=False)
-
-    return {"ok": True, "filename": filename}
+    result = await db_save_assessment(
+        participant_id=req.participant_id,
+        competency=req.competency,
+        steps=req.steps,
+        created_by=username,
+        prompt_versions=pm_get_active_versions(req.competency),
+    )
+    return {"ok": True, "filename": result["filename"], "id": result["id"]}
 
 
 class SaveRunRequest(BaseModel):
@@ -730,194 +738,86 @@ class SaveRunRequest(BaseModel):
 
 @app.post("/api/runs/save")
 async def save_run(req: SaveRunRequest, request: Request):
-    """Zapisuje pojedynczy run modułu (prompt + wynik) do historii."""
-    from datetime import datetime
+    """Zapisuje pojedynczy run modułu (prompt + wynik) do bazy SQLite."""
     user = getattr(request.state, "user", {})
     username = user.get("username", "anonymous")
-
-    runs_dir = Path(__file__).parent.parent / "runs"
-    runs_dir.mkdir(exist_ok=True)
-
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    safe_module = req.module.replace("/", "_")
-    filename = f"{ts}_{req.participant_id}_{req.competency}_{safe_module}_{username}.json"
-    filepath = runs_dir / filename
-
-    run_data = {
-        "saved_at": datetime.now().isoformat(),
-        "saved_by": username,
-        "participant_id": req.participant_id,
-        "competency": req.competency,
-        "module": req.module,
-        "run": req.run,
-    }
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(run_data, f, indent=2, ensure_ascii=False)
-
-    return {"ok": True, "filename": filename}
+    result = await db_save_run(
+        participant_id=req.participant_id,
+        competency=req.competency,
+        module=req.module,
+        run=req.run,
+        saved_by=username,
+    )
+    return {"ok": True, "filename": result["filename"], "id": result["id"]}
 
 
 @app.get("/api/runs")
 async def list_runs(request: Request, competency: Optional[str] = None, module: Optional[str] = None):
     """Lista zapisanych runów prompt/result z opcjonalnym filtrem."""
-    runs_dir = Path(__file__).parent.parent / "runs"
-    if not runs_dir.exists():
-        return []
-
-    runs = []
-    for fp in sorted(runs_dir.glob("*.json"), reverse=True):
-        try:
-            with open(fp, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if competency and data.get("competency") != competency:
-                continue
-            if module and data.get("module") != module:
-                continue
-            runs.append({
-                "filename": fp.name,
-                "saved_at": data.get("saved_at"),
-                "saved_by": data.get("saved_by"),
-                "participant_id": data.get("participant_id"),
-                "competency": data.get("competency"),
-                "module": data.get("module"),
-            })
-        except Exception:
-            continue
-    return runs
+    return await db_list_runs(competency=competency, module=module)
 
 
 @app.get("/api/runs/{filename}")
 async def get_run_file(filename: str, request: Request):
-    """Pobiera pojedynczy zapis runu."""
-    runs_dir = Path(__file__).parent.parent / "runs"
-    filepath = runs_dir / filename
-    if not filepath.exists() or not filepath.name.endswith(".json"):
+    """Pobiera pojedynczy zapis runu z bazy SQLite."""
+    run_data = await db_get_run_by_ref(filename)
+    if not run_data:
         raise HTTPException(status_code=404, detail="Run nie znaleziony")
-    with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return run_data
 
 
 @app.get("/api/sessions")
 async def list_sessions(request: Request, competency: Optional[str] = None):
     """Lista zapisanych sesji diagnostycznych. Opcjonalny filtr po kompetencji."""
-    sessions_dir = Path(__file__).parent.parent / "sessions"
-    if not sessions_dir.exists():
-        return []
-
-    sessions = []
-    for fp in sorted(sessions_dir.glob("*.json"), reverse=True):
-        try:
-            with open(fp, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            session_competency = data.get("competency", "delegowanie")
-            if competency and session_competency != competency:
-                continue
-            score_data = data.get("steps", {}).get("score", {})
-            score = score_data.get("ocena", score_data.get("ocena_delegowanie"))
-            sessions.append({
-                "filename": fp.name,
-                "saved_at": data.get("saved_at"),
-                "saved_by": data.get("saved_by"),
-                "participant_id": data.get("participant_id"),
-                "competency": session_competency,
-                "score": score,
-            })
-        except Exception:
-            continue
-    return sessions
+    return await db_list_assessments(competency=competency)
 
 
 @app.get("/api/sessions/compare")
 async def compare_sessions(a: str, b: str, request: Request):
     """Porównuje dwie sesje diagnostyczne."""
-    sessions_dir = Path(__file__).parent.parent / "sessions"
-
-    filepath_a = sessions_dir / a
-    filepath_b = sessions_dir / b
-
-    if not filepath_a.exists():
-        raise HTTPException(status_code=404, detail=f"Sesja {a} nie znaleziona")
-    if not filepath_b.exists():
-        raise HTTPException(status_code=404, detail=f"Sesja {b} nie znaleziona")
-
-    with open(filepath_a, "r", encoding="utf-8") as f:
-        session_a = json.load(f)
-    with open(filepath_b, "r", encoding="utf-8") as f:
-        session_b = json.load(f)
-
-    def extract_session_data(session):
-        steps = session.get("steps", {})
-        score_data = steps.get("score", {})
-        feedback_data = steps.get("feedback", {})
-        parse_data = steps.get("parse", {})
-        map_data = steps.get("map", {})
-
-        ocena = score_data.get("ocena", score_data.get("ocena_delegowanie"))
-
-        return {
-            "participant_id": session.get("participant_id"),
-            "competency": session.get("competency", "delegowanie"),
-            "saved_at": session.get("saved_at"),
-            "saved_by": session.get("saved_by"),
-            "ocena": ocena,
-            "poziom": score_data.get("poziom"),
-            "dimension_scores": {
-                k: v.get("ocena") for k, v in score_data.get("dimension_scores", {}).items()
-            },
-            "prompt_versions": steps.get("prompt_versions", {}),
-            "prompts": {
-                "parse": parse_data.get("_prompt", {}),
-                "map": map_data.get("_prompt", {}),
-                "score": score_data.get("_prompt", {}),
-                "feedback": feedback_data.get("_prompt", {}),
-            },
-            "feedback": {
-                "summary": feedback_data.get("summary"),
-                "recommendation": feedback_data.get("recommendation"),
-                "mocne_strony": feedback_data.get("mocne_strony", []),
-                "obszary_rozwoju": feedback_data.get("obszary_rozwoju", []),
-            },
-        }
-
-    data_a = extract_session_data(session_a)
-    data_b = extract_session_data(session_b)
-
-    score_diff = None
-    if data_a["ocena"] is not None and data_b["ocena"] is not None:
-        score_diff = round(data_b["ocena"] - data_a["ocena"], 2)
-
-    dimension_diffs = {}
-    all_dims = set(list(data_a["dimension_scores"].keys()) + list(data_b["dimension_scores"].keys()))
-    for dim in all_dims:
-        val_a = data_a["dimension_scores"].get(dim)
-        val_b = data_b["dimension_scores"].get(dim)
-        if val_a is not None and val_b is not None:
-            dimension_diffs[dim] = {"a": val_a, "b": val_b, "diff": round(val_b - val_a, 2)}
-        else:
-            dimension_diffs[dim] = {"a": val_a, "b": val_b, "diff": None}
-
-    return {
-        "session_a": {"filename": a, **data_a},
-        "session_b": {"filename": b, **data_b},
-        "comparison": {
-            "score_diff": score_diff,
-            "dimension_diffs": dimension_diffs,
-            "same_participant": data_a["participant_id"] == data_b["participant_id"],
-            "same_competency": data_a["competency"] == data_b["competency"],
-        },
-    }
+    result = await db_compare_assessments(a, b)
+    if not result:
+        raise HTTPException(status_code=404, detail="Jedna z sesji nie znaleziona")
+    return result
 
 
 @app.get("/api/sessions/{filename}")
 async def get_session_file(filename: str, request: Request):
-    """Pobiera konkretną sesję diagnostyczną."""
-    sessions_dir = Path(__file__).parent.parent / "sessions"
-    filepath = sessions_dir / filename
-    if not filepath.exists() or not filepath.name.endswith(".json"):
+    """Pobiera konkretną sesję diagnostyczną z bazy SQLite."""
+    session_data = await db_get_assessment_by_ref(filename)
+    if not session_data:
         raise HTTPException(status_code=404, detail="Sesja nie znaleziona")
+    return session_data
 
-    with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
+
+@app.get("/api/db/assessments")
+async def list_db_assessments(
+    request: Request,
+    competency: Optional[str] = None,
+    participant_id: Optional[str] = None,
+    limit: int = 200,
+):
+    """Lista ocen z bazy danych z opcjonalnym filtrowaniem."""
+    return await db_list_assessments(
+        competency=competency,
+        participant_id=participant_id,
+        limit=limit,
+    )
+
+
+@app.get("/api/db/assessments/{assessment_id}")
+async def get_db_assessment(assessment_id: int, request: Request):
+    """Szczegóły pojedynczej oceny z bazy danych."""
+    assessment = await db_get_assessment_by_id(assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Ocena nie znaleziona")
+    return assessment
+
+
+@app.get("/api/db/stats")
+async def get_db_stats(request: Request):
+    """Statystyki bazy danych ocen."""
+    return await db_get_assessment_stats()
 
 
 # ---------------------------------------------------------------------------
@@ -1068,6 +968,30 @@ async def update_weights(competency: str, request: Request):
         json.dump(weights_data, f, indent=2, ensure_ascii=False)
 
     return {"ok": True, "competency": competency, "weights": weights}
+
+
+@app.post("/api/export/{export_format}")
+async def export_results(export_format: str, request: ExportRequest):
+    supported_formats = {"json", "txt", "html", "excel", "pdf_full", "pdf_summary"}
+    if export_format not in supported_formats:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Nieobslugiwany format '{export_format}'. Dostepne: {sorted(supported_formats)}",
+        )
+
+    if not request.results:
+        raise HTTPException(status_code=400, detail="Brak wynikow do eksportu")
+
+    try:
+        payload = request.model_dump()
+        file_bytes = export_report(export_format, payload)
+        filename = get_filename(export_format, request.participant_id, request.generated_at)
+        headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+        return Response(content=file_bytes, media_type=get_content_type(export_format), headers=headers)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Blad eksportu: {str(e)}")
 
 
 # ---------------------------------------------------------------------------
