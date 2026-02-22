@@ -880,16 +880,21 @@ async def list_prompts(request: Request):
 
 @app.get("/api/prompts/{module}")
 async def get_module_prompts(module: str, request: Request, competency: str = "delegowanie"):
-    """Szczegóły modułu + lista wersji."""
+    """Szczegóły modułu + lista wersji filtrowana per kompetencja."""
     try:
-        versions = pm_list_versions(module)
+        all_versions = pm_list_versions(module)
+        short = competency_short_name(resolve_competency(competency))
+        filtered = [
+            v for v in all_versions
+            if short in v.get("active_for", []) or not v.get("active_for")
+        ]
         active = pm_get_prompt(module, competency=competency)
         return {
             "module": module,
             "competency": competency,
             "active_version": active["version"],
             "active_content": active["content"],
-            "versions": versions,
+            "versions": filtered,
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
