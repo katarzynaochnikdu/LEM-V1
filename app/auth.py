@@ -1,6 +1,7 @@
 """
 Moduł autentykacji – sesje oparte na tokenach w cookie.
 Użytkownicy przechowywani w config/users.json (bcrypt hashe).
+Sesje persystowane w config/sessions.json (współdzielone między workerami).
 """
 
 import hashlib
@@ -9,15 +10,15 @@ import json
 import os
 import secrets
 import time
+import fcntl
 from pathlib import Path
 from typing import Optional
 
 USERS_PATH = Path(__file__).parent.parent / "config" / "users.json"
+SESSIONS_PATH = Path(__file__).parent.parent / "config" / "sessions.json"
+ACTIVITY_PATH = Path(__file__).parent.parent / "config" / "activity.json"
 SESSION_COOKIE = "lem_session"
 SESSION_TTL = 60 * 60 * 12  # 12 h
-
-_sessions: dict[str, dict] = {}
-_activity_log: list[dict] = []
 MAX_ACTIVITY_LOG = 1000
 
 
@@ -27,17 +28,56 @@ def _hash_password(password: str, salt: str) -> str:
     ).hex()
 
 
+def _load_json(path: Path, default=None):
+    if default is None:
+        default = {}
+    if not path.exists():
+        return default
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return default
+
+
+def _save_json(path: Path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.flush()
+        os.fsync(f.fileno())
+        fcntl.flock(f, fcntl.LOCK_UN)
+    tmp.replace(path)
+
+
 def _load_users() -> dict:
-    if not USERS_PATH.exists():
-        return {}
-    with open(USERS_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return _load_json(USERS_PATH, {})
 
 
 def _save_users(users: dict) -> None:
-    USERS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(USERS_PATH, "w", encoding="utf-8") as f:
-        json.dump(users, f, indent=2, ensure_ascii=False)
+    _save_json(USERS_PATH, users)
+
+
+# ---------------------------------------------------------------------------
+# Sessions (file-based, shared between workers)
+# ---------------------------------------------------------------------------
+
+def _load_sessions() -> dict:
+    return _load_json(SESSIONS_PATH, {})
+
+
+def _save_sessions(sessions: dict) -> None:
+    _save_json(SESSIONS_PATH, sessions)
+
+
+def _purge_expired(sessions: dict) -> dict:
+    now = time.time()
+    return {
+        tok: s for tok, s in sessions.items()
+        if now - s.get("created", 0) <= SESSION_TTL
+    }
 
 
 def ensure_admin_exists() -> None:
@@ -77,27 +117,39 @@ def verify_user(username: str, password: str) -> Optional[str]:
 
 def create_session(username: str, role: str) -> str:
     token = secrets.token_urlsafe(48)
-    _sessions[token] = {
+    sessions = _load_sessions()
+    sessions = _purge_expired(sessions)
+    sessions[token] = {
         "username": username,
         "role": role,
         "created": time.time(),
     }
+    _save_sessions(sessions)
     return token
 
 
 def get_session(token: str) -> Optional[dict]:
-    sess = _sessions.get(token)
+    sessions = _load_sessions()
+    sess = sessions.get(token)
     if not sess:
         return None
-    if time.time() - sess["created"] > SESSION_TTL:
-        _sessions.pop(token, None)
+    if time.time() - sess.get("created", 0) > SESSION_TTL:
+        sessions.pop(token, None)
+        _save_sessions(sessions)
         return None
     return sess
 
 
 def delete_session(token: str) -> None:
-    _sessions.pop(token, None)
+    sessions = _load_sessions()
+    if token in sessions:
+        sessions.pop(token)
+        _save_sessions(sessions)
 
+
+# ---------------------------------------------------------------------------
+# Activity log (file-based, shared between workers)
+# ---------------------------------------------------------------------------
 
 def log_activity(
     *,
@@ -115,27 +167,31 @@ def log_activity(
         "status": status,
         "details": details or {},
     }
-    _activity_log.append(entry)
-    if len(_activity_log) > MAX_ACTIVITY_LOG:
-        del _activity_log[: len(_activity_log) - MAX_ACTIVITY_LOG]
+    log = _load_json(ACTIVITY_PATH, [])
+    if not isinstance(log, list):
+        log = []
+    log.append(entry)
+    if len(log) > MAX_ACTIVITY_LOG:
+        log = log[-MAX_ACTIVITY_LOG:]
+    _save_json(ACTIVITY_PATH, log)
 
 
 def list_activity(limit: int = 200) -> list[dict]:
     safe_limit = max(1, min(limit, MAX_ACTIVITY_LOG))
-    # Najnowsze wpisy na górze.
-    return list(reversed(_activity_log[-safe_limit:]))
+    log = _load_json(ACTIVITY_PATH, [])
+    if not isinstance(log, list):
+        return []
+    return list(reversed(log[-safe_limit:]))
 
 
 def list_active_sessions() -> list[dict]:
+    sessions = _load_sessions()
+    sessions = _purge_expired(sessions)
     now = time.time()
-    sessions: list[dict] = []
-    expired_tokens: list[str] = []
-    for token, sess in _sessions.items():
+    result = []
+    for _token, sess in sessions.items():
         age = now - sess.get("created", now)
-        if age > SESSION_TTL:
-            expired_tokens.append(token)
-            continue
-        sessions.append(
+        result.append(
             {
                 "username": sess.get("username"),
                 "role": sess.get("role", "user"),
@@ -143,10 +199,8 @@ def list_active_sessions() -> list[dict]:
                 "age_seconds": int(age),
             }
         )
-    for token in expired_tokens:
-        _sessions.pop(token, None)
-    sessions.sort(key=lambda item: item.get("created", 0), reverse=True)
-    return sessions
+    result.sort(key=lambda item: item.get("created", 0), reverse=True)
+    return result
 
 
 def list_users() -> list[dict]:
