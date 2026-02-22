@@ -38,6 +38,7 @@ from app.auth import (
     ensure_admin_exists, verify_user, create_session,
     get_session, delete_session, add_user, list_users,
     delete_user, change_password, change_role,
+    log_activity, list_activity, list_active_sessions,
     SESSION_COOKIE,
 )
 from app.prompt_manager import (
@@ -124,8 +125,10 @@ class LoginRequest(BaseModel):
 async def api_login(req: LoginRequest, response: Response):
     role = verify_user(req.username, req.password)
     if not role:
+        log_activity(action="login_failed", actor=req.username, status="fail")
         raise HTTPException(status_code=401, detail="Nieprawidłowy login lub hasło")
     token = create_session(req.username, role)
+    log_activity(action="login", actor=req.username, details={"role": role})
     cookie_secure = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
     cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "lax")
     response.set_cookie(
@@ -142,8 +145,13 @@ async def api_login(req: LoginRequest, response: Response):
 
 @app.post("/api/auth/logout")
 async def api_logout(response: Response, lem_session: Optional[str] = Cookie(None)):
+    username = "unknown"
     if lem_session:
+        sess = get_session(lem_session)
+        if sess:
+            username = sess.get("username", "unknown")
         delete_session(lem_session)
+    log_activity(action="logout", actor=username)
     response.delete_cookie(SESSION_COOKIE, path="/")
     return {"ok": True}
 
@@ -176,6 +184,7 @@ async def api_add_user(req: AddUserRequest, request: Request):
     ok = add_user(req.username, req.password, req.role)
     if not ok:
         raise HTTPException(status_code=409, detail="Użytkownik już istnieje")
+    log_activity(action="user_add", actor=user["username"], target=req.username, details={"role": req.role})
     return {"ok": True, "username": req.username}
 
 
@@ -196,6 +205,7 @@ async def api_delete_user(username: str, request: Request):
         raise HTTPException(status_code=400, detail="Nie możesz usunąć samego siebie")
     if not delete_user(username):
         raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    log_activity(action="user_delete", actor=user["username"], target=username)
     return {"ok": True}
 
 
@@ -210,6 +220,7 @@ async def api_change_password(username: str, req: ChangePasswordRequest, request
         raise HTTPException(status_code=403, detail="Tylko admin może zmieniać hasła")
     if not change_password(username, req.new_password):
         raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    log_activity(action="password_change", actor=user["username"], target=username)
     return {"ok": True}
 
 
@@ -226,7 +237,24 @@ async def api_change_role(username: str, req: ChangeRoleRequest, request: Reques
         raise HTTPException(status_code=400, detail="Nie możesz zmienić własnej roli")
     if not change_role(username, req.role):
         raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    log_activity(action="role_change", actor=user["username"], target=username, details={"new_role": req.role})
     return {"ok": True}
+
+
+@app.get("/api/admin/activity")
+async def api_admin_activity(request: Request, limit: int = 200):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Tylko admin")
+    return list_activity(limit)
+
+
+@app.get("/api/admin/sessions")
+async def api_admin_sessions(request: Request):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Tylko admin")
+    return list_active_sessions()
 
 
 @app.get("/api/llm/config")
@@ -458,9 +486,11 @@ class ExportRequest(BaseModel):
 
 
 @app.post("/api/diagnostic/parse")
-async def diagnostic_parse(request: DiagnosticParseRequest):
+async def diagnostic_parse(request: DiagnosticParseRequest, http_request: Request):
     """Krok 1: Strukturyzacja odpowiedzi na sekcje"""
     try:
+        user = getattr(http_request.state, "user", {})
+        log_activity(action="diagnostic_parse", actor=user.get("username", "?"), details={"competency": request.competency})
         parser, _, _, _ = get_modules(request.competency)
         llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("parse", competency=request.competency)
@@ -487,10 +517,12 @@ async def diagnostic_parse(request: DiagnosticParseRequest):
 
 
 @app.post("/api/diagnostic/map")
-async def diagnostic_map(request: dict):
+async def diagnostic_map(request: dict, http_request: Request):
     """Krok 2: Ekstrakcja dowodów dla wymiarów"""
     try:
         competency = request.get("competency", "delegowanie")
+        user = getattr(http_request.state, "user", {})
+        log_activity(action="diagnostic_map", actor=user.get("username", "?"), details={"competency": competency})
         _, mapper, _, _ = get_modules(competency)
         llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("map", competency=competency)
@@ -541,10 +573,12 @@ async def diagnostic_map(request: dict):
 
 
 @app.post("/api/diagnostic/score")
-async def diagnostic_score(request: dict):
+async def diagnostic_score(request: dict, http_request: Request):
     """Krok 3: Scoring - ocena wymiarów i wynik końcowy"""
     try:
         competency = request.get("competency", "delegowanie")
+        user = getattr(http_request.state, "user", {})
+        log_activity(action="diagnostic_score", actor=user.get("username", "?"), details={"competency": competency})
         _, _, scorer, _ = get_modules(competency)
         llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("score", competency=competency)
@@ -628,10 +662,12 @@ async def diagnostic_score(request: dict):
 
 
 @app.post("/api/diagnostic/feedback")
-async def diagnostic_feedback(request: dict):
+async def diagnostic_feedback(request: dict, http_request: Request):
     """Krok 4: Generowanie feedbacku rozwojowego"""
     try:
         competency = request.get("competency", "delegowanie")
+        user = getattr(http_request.state, "user", {})
+        log_activity(action="diagnostic_feedback", actor=user.get("username", "?"), details={"competency": competency})
         _, _, _, fg = get_modules(competency)
         llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("feedback", competency=competency)
@@ -726,6 +762,11 @@ async def save_session(req: SaveSessionRequest, request: Request):
         created_by=username,
         prompt_versions=pm_get_active_versions(req.competency),
     )
+    log_activity(
+        action="session_save",
+        actor=username,
+        details={"participant": req.participant_id, "competency": req.competency, "session_id": result["id"]},
+    )
     return {"ok": True, "filename": result["filename"], "id": result["id"]}
 
 
@@ -747,6 +788,11 @@ async def save_run(req: SaveRunRequest, request: Request):
         module=req.module,
         run=req.run,
         saved_by=username,
+    )
+    log_activity(
+        action="run_save",
+        actor=username,
+        details={"participant": req.participant_id, "competency": req.competency, "module": req.module},
     )
     return {"ok": True, "filename": result["filename"], "id": result["id"]}
 

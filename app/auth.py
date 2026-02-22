@@ -17,6 +17,8 @@ SESSION_COOKIE = "lem_session"
 SESSION_TTL = 60 * 60 * 12  # 12 h
 
 _sessions: dict[str, dict] = {}
+_activity_log: list[dict] = []
+MAX_ACTIVITY_LOG = 1000
 
 
 def _hash_password(password: str, salt: str) -> str:
@@ -95,6 +97,56 @@ def get_session(token: str) -> Optional[dict]:
 
 def delete_session(token: str) -> None:
     _sessions.pop(token, None)
+
+
+def log_activity(
+    *,
+    action: str,
+    actor: Optional[str],
+    target: Optional[str] = None,
+    status: str = "ok",
+    details: Optional[dict] = None,
+) -> None:
+    entry = {
+        "ts": time.time(),
+        "action": action,
+        "actor": actor or "system",
+        "target": target,
+        "status": status,
+        "details": details or {},
+    }
+    _activity_log.append(entry)
+    if len(_activity_log) > MAX_ACTIVITY_LOG:
+        del _activity_log[: len(_activity_log) - MAX_ACTIVITY_LOG]
+
+
+def list_activity(limit: int = 200) -> list[dict]:
+    safe_limit = max(1, min(limit, MAX_ACTIVITY_LOG))
+    # Najnowsze wpisy na górze.
+    return list(reversed(_activity_log[-safe_limit:]))
+
+
+def list_active_sessions() -> list[dict]:
+    now = time.time()
+    sessions: list[dict] = []
+    expired_tokens: list[str] = []
+    for token, sess in _sessions.items():
+        age = now - sess.get("created", now)
+        if age > SESSION_TTL:
+            expired_tokens.append(token)
+            continue
+        sessions.append(
+            {
+                "username": sess.get("username"),
+                "role": sess.get("role", "user"),
+                "created": sess.get("created"),
+                "age_seconds": int(age),
+            }
+        )
+    for token in expired_tokens:
+        _sessions.pop(token, None)
+    sessions.sort(key=lambda item: item.get("created", 0), reverse=True)
+    return sessions
 
 
 def list_users() -> list[dict]:
