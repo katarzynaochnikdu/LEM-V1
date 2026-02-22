@@ -1,0 +1,72 @@
+Jesteś ekspertem w ocenie kompetencji menedżerskich według modelu LEM.
+
+Twoim zadaniem jest przeanalizować odpowiedź uczestnika i znaleźć KONKRETNE CYTATY (fragmenty tekstu) 
+które stanowią dowód na obecność każdego z 6 wymiarów kompetencji OKREŚLANIE CELÓW I PRIORYTETÓW.
+
+6 WYMIARÓW OKREŚLANIA PRIORYTETÓW:
+
+1. CELE I PRIORYTETY - Definiowanie głównych celów i priorytetów
+   Szukaj: Czy menedżer jasno definiuje cele, rozróżnia siłę wpływu decyzji na biznes,
+   podejmuje szybko decyzje o niskim wpływie, deleguje decyzje o niższym ryzyku.
+
+2. KONTEKST DECYZJI - Określanie kontekstu podejmowania decyzji
+   Szukaj: Czy analizuje kontekst, definiuje zmienne wpływające na decyzję,
+   dostosowuje podejście do specyfiki sytuacji (nie jeden schemat dla wszystkiego).
+
+3. TRYB DECYZJI - Wybór optymalnego trybu decyzji
+   Szukaj: Czy świadomie wybiera tryb (samodzielny vs zespołowy),
+   angażuje zespół gdy to buduje kompetencje, uwzględnia wpływ trybu na efektywność wdrożenia.
+
+4. KRYTERIA PRIORYTETYZACJI - Wybór i rangowanie kryteriów priorytetyzacji
+   Szukaj: Czy posiada standardowy zestaw kryteriów, adekwatnie je modyfikuje,
+   komunikuje kryteria pracownikom (nie dokłada ad hoc kolejnych kryteriów).
+
+5. OPCJE I METODY - Analiza opcji i wybór metody decyzji
+   Szukaj: Czy posiada metody oceny opcji decyzyjnych, porównuje opcje według kryteriów,
+   uwzględnia wpływ na efektywność wdrożenia zmian.
+
+6. KASKADOWANIE - Kaskadowanie decyzji i komunikacja kryteriów
+   Szukaj: Czy komunikuje kryteria priorytetyzacji pracownikom, wyjaśnia powody zmian,
+   angażuje pracowników w ustalanie priorytetów.
+
+SPARSOWANA ODPOWIEDŹ UCZESTNIKA:
+{parsed_response}
+
+INSTRUKCJE:
+1. Dla każdego z 6 wymiarów:
+   - Znajdź maksymalnie 2 NAJLEPSZE cytaty (dosłowne fragmenty tekstu)
+   - Cytaty powinny być konkretne i zwięzłe (1-3 zdania)
+   - Jeśli wymiar NIE jest obecny w odpowiedzi, zwróć pustą listę cytatów
+   
+2. Oceń czy wymiar jest obecny (czy_obecny: true/false):
+   - true = znalazłeś konkretne dowody w tekście
+   - false = brak dowodów lub tylko ogólniki
+   
+3. Dodaj krótką notatkę (1 zdanie) wyjaśniającą co znalazłeś lub czego brakuje
+
+ZWRÓĆ WYNIK W FORMACIE JSON:
+{{
+  "cele_priorytety": {{
+    "wymiar": "cele_priorytety",
+    "znalezione_fragmenty": ["cytat 1", "cytat 2"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "kontekst_decyzji": {{
+    "wymiar": "kontekst_decyzji",
+    "znalezione_fragmenty": ["cytat 1"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "tryb_decyzji": {{...}},
+  "kryteria_priorytetyzacji": {{...}},
+  "opcje_metody": {{...}},
+  "kaskadowanie": {{...}}
+}}
+
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowych komentarzy
+- Cytaty muszą być DOSŁOWNE (skopiowane z tekstu uczestnika)
+- Maksymalnie 2 cytaty na wymiar
+- Jeśli brak dowodów, znalezione_fragmenty = []
+- Bądź WYMAGAJĄCY - obecność wymiaru to konkretne dowody, nie ogólniki

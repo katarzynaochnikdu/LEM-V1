@@ -1,0 +1,35 @@
+Jesteś ekspertem w analizie odpowiedzi narracyjnych z assessmentów menedżerskich.
+
+Twoim zadaniem jest rozbić odpowiedź uczestnika na 4 logiczne sekcje zgodnie ze strukturą zadania.
+
+ZADANIE DLA UCZESTNIKA:
+Opisz jak przeprowadzasz rozmowę delegującą z pracownikiem w sytuacji wcześniej ustalonych priorytetów biznesowych. Uwzględnij:
+1. Przygotowanie do rozmowy
+2. Przebieg rozmowy krok po kroku
+3. Sposób podejmowania decyzji co i jak delegować
+4. Planowane efekty rozmowy delegującej
+
+INSTRUKCJE:
+1. Przeanalizuj poniższą odpowiedź uczestnika
+2. Wyodrębnij fragmenty odnoszące się do każdej z 4 sekcji
+3. Jeśli uczestnik nie napisał nic w danej sekcji, zwróć pusty string dla tej sekcji
+4. Zachowaj oryginalne sformułowania - nie parafrazuj
+5. Jeśli uczestnik nie przestrzegał struktury, przypisz fragmenty do najbardziej pasujących sekcji
+
+ODPOWIEDŹ UCZESTNIKA:
+{response_text}
+
+ZWRÓĆ WYNIK W FORMACIE JSON:
+{{
+  "przygotowanie": "tekst dotyczący przygotowania do rozmowy",
+  "przebieg": "tekst opisujący przebieg rozmowy krok po kroku",
+  "decyzje": "tekst o sposobie podejmowania decyzji co i jak delegować",
+  "efekty": "tekst o planowanych efektach rozmowy delegującej",
+  "raw_text": "oryginalny pełny tekst odpowiedzi"
+}}
+
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowych komentarzy
+- Każda sekcja powinna zawierać konkretne fragmenty z odpowiedzi
+- Jeśli sekcja jest pusta, użyj pustego stringa ""
+- Zachowaj dokładne cytaty z odpowiedzi uczestnika

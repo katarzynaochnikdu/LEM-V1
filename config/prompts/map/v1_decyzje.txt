@@ -1,0 +1,72 @@
+Jesteś ekspertem w ocenie kompetencji menedżerskich według modelu LEM.
+
+Twoim zadaniem jest przeanalizować odpowiedź uczestnika i znaleźć KONKRETNE CYTATY (fragmenty tekstu) 
+które stanowią dowód na obecność każdego z 6 wymiarów kompetencji PODEJMOWANIE DECYZJI NA BAZIE KRYTERIÓW.
+
+6 WYMIARÓW PODEJMOWANIA DECYZJI:
+
+1. REZULTATY I ZAKRES - Definiowanie rezultatów i zakresu decyzji
+   Szukaj: Czy menedżer tworzy listę kluczowych decyzji, definiuje ich rezultaty,
+   określa zakres (granice) decyzji, łączy z celami strategicznymi.
+
+2. KONTEKST I OTOCZENIE - Mapowanie otoczenia i kontekstu decyzji
+   Szukaj: Czy analizuje otoczenie biznesowe, uwzględnia wszystkie istotne informacje i dane,
+   bierze pod uwagę kontekst rynkowy i organizacyjny.
+
+3. KRYTERIA DECYZYJNE - Określanie i rangowanie kryteriów
+   Szukaj: Czy precyzyjnie określa kryteria decyzyjne, nadaje im wagi,
+   kryteria oparte na danych (nie intuicji/emocjach).
+
+4. MAPOWANIE RYZYK - Mapowanie ryzyk podejmowanej decyzji
+   Szukaj: Czy identyfikuje ryzyka PRZED podjęciem decyzji (nie po fakcie),
+   przygotowuje plan mitygacji, dostosowuje decyzje do zmapowanych ryzyk.
+
+5. ALTERNATYWNE SCENARIUSZE - Analiza alternatywnych scenariuszy
+   Szukaj: Czy analizuje kilka opcji decyzyjnych, rozważa alternatywne scenariusze
+   przyszłych wydarzeń, przygotowuje plany awaryjne.
+
+6. KOMUNIKACJA DECYZJI - Komunikowanie i wdrażanie decyzji
+   Szukaj: Czy komunikuje decyzje z ich strategicznym znaczeniem, komunikuje się etapowo
+   podczas wdrażania, angażuje pracowników w planowanie i wdrożenie.
+
+SPARSOWANA ODPOWIEDŹ UCZESTNIKA:
+{parsed_response}
+
+INSTRUKCJE:
+1. Dla każdego z 6 wymiarów:
+   - Znajdź maksymalnie 2 NAJLEPSZE cytaty (dosłowne fragmenty tekstu)
+   - Cytaty powinny być konkretne i zwięzłe (1-3 zdania)
+   - Jeśli wymiar NIE jest obecny w odpowiedzi, zwróć pustą listę cytatów
+   
+2. Oceń czy wymiar jest obecny (czy_obecny: true/false):
+   - true = znalazłeś konkretne dowody w tekście
+   - false = brak dowodów lub tylko ogólniki
+   
+3. Dodaj krótką notatkę (1 zdanie) wyjaśniającą co znalazłeś lub czego brakuje
+
+ZWRÓĆ WYNIK W FORMACIE JSON:
+{{
+  "rezultaty_zakres": {{
+    "wymiar": "rezultaty_zakres",
+    "znalezione_fragmenty": ["cytat 1", "cytat 2"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "kontekst_otoczenie": {{
+    "wymiar": "kontekst_otoczenie",
+    "znalezione_fragmenty": ["cytat 1"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "kryteria_decyzyjne": {{...}},
+  "mapowanie_ryzyk": {{...}},
+  "alternatywne_scenariusze": {{...}},
+  "komunikacja_decyzji": {{...}}
+}}
+
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowych komentarzy
+- Cytaty muszą być DOSŁOWNE (skopiowane z tekstu uczestnika)
+- Maksymalnie 2 cytaty na wymiar
+- Jeśli brak dowodów, znalezione_fragmenty = []
+- Bądź WYMAGAJĄCY - obecność wymiaru to konkretne dowody, nie ogólniki

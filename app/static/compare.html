@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEM - Porównywarka</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <style>
+        .selector-panel {
+            background: #161b22;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .selector-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+        .form-group { flex: 1; }
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .vs-text {
+            color: #8b949e;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding-bottom: 0.75rem;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .session-panel {
+            background: #161b22;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            overflow: hidden;
+        }
+        .session-header {
+            background: #1c2128;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #30363d;
+        }
+        .session-header h3 {
+            font-size: 1rem;
+            color: #c9d1d9;
+        }
+        .session-header .meta {
+            color: #8b949e;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+        .session-body { padding: 1.25rem; }
+        .score-summary {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #334155;
+        }
+        .score-big {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .score-label {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+        .poziom-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: #1f2937;
+            color: #8b949e;
+        }
+        .dimension-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .dimension-row:last-child { border-bottom: none; }
+        .dimension-name {
+            color: #c9d1d9;
+            font-size: 0.9rem;
+        }
+        .dimension-score {
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .section-title {
+            color: #8b949e;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+        .prompt-preview {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .diff-panel {
+            background: #161b22;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .diff-panel h3 {
+            color: #c9d1d9;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .diff-row {
+            display: grid;
+            grid-template-columns: 150px 1fr 80px 80px 80px;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #334155;
+        }
+        .diff-row:last-child { border-bottom: none; }
+        .diff-header {
+            font-weight: 600;
+            color: #8b949e;
+            font-size: 0.85rem;
+        }
+        .diff-dimension { color: #c9d1d9; }
+        .diff-value { text-align: center; font-weight: 500; }
+        .diff-change { text-align: center; font-weight: 600; }
+        .diff-positive { color: #4ade80; }
+        .diff-negative { color: #f87171; }
+        .diff-neutral { color: #94a3b8; }
+        .feedback-section {
+            margin-top: 1.5rem;
+        }
+        .feedback-text {
+            color: #c9d1d9;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+        .feedback-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feedback-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #c9d1d9;
+            font-size: 0.9rem;
+        }
+        .feedback-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #58a6ff;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #8b949e;
+        }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .toggle-btn {
+            background: none;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        .toggle-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+        .collapsible { display: none; }
+        .collapsible.expanded { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-row">
+                <div class="title-wrap">
+                    <h1>LEM - Porównywarka sesji</h1>
+                    <p>Porównanie wyników i promptów pomiędzy zapisanymi uruchomieniami</p>
+                </div>
+                <nav class="nav-tabs">
+                    <a href="/ui">Diagnostyka</a>
+                    <a href="/prompts">Prompty</a>
+                    <a href="/compare" class="active">Porównywarka</a>
+                    <a href="/calibration">Kalibracja</a>
+                </nav>
+                <div class="user-bar">
+                    <span class="user-name" id="userNameDisplay"></span>
+                    <span class="user-role" id="userRoleDisplay"></span>
+                    <button class="btn-sm danger" onclick="LEMShared.doLogout()">Wyloguj</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="selector-panel">
+            <div class="selector-row">
+                <div class="form-group">
+                    <label for="sessionA">Sesja A (bazowa)</label>
+                    <select id="sessionA">
+                        <option value="">Wybierz sesję...</option>
+                    </select>
+                </div>
+                <div class="vs-text">VS</div>
+                <div class="form-group">
+                    <label for="sessionB">Sesja B (porównywana)</label>
+                    <select id="sessionB">
+                        <option value="">Wybierz sesję...</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="loadComparison()">Porównaj</button>
+            </div>
+        </div>
+
+        <div id="comparisonResults">
+            <div class="empty-state">
+                <div class="icon">📊</div>
+                <p>Wybierz dwie sesje do porównania</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/shared.js"></script>
+    <script>
+        let DIMENSION_NAMES = {};
+
+        async function loadAllDimNames() {
+            try {
+                const resp = await fetch('/api/competencies');
+                const comps = await resp.json();
+                for (const c of comps) {
+                    const r = await fetch('/api/competencies/' + c.id + '/dimensions');
+                    const data = await r.json();
+                    for (const [key, dim] of Object.entries(data.dimensions)) {
+                        DIMENSION_NAMES[key] = dim.nazwa;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load dimension names:', e);
+                DIMENSION_NAMES = {
+                    intencja: 'Intencja', stan_docelowy: 'Stan docelowy',
+                    metoda_pomiaru: 'Metoda pomiaru', poziom_odpowiedzialnosci: 'Poziom odpowiedzialności',
+                    harmonogram: 'Harmonogram', monitorowanie: 'Monitorowanie',
+                    sprawdzenie_zrozumienia: 'Sprawdzenie zrozumienia'
+                };
+            }
+        }
+
+        async function loadUser() {
+            await LEMShared.ensureAuth((u) => {
+                document.getElementById("userNameDisplay").textContent = u.username;
+                const roleEl = document.getElementById("userRoleDisplay");
+                roleEl.textContent = u.role;
+                if (u.role === "admin") roleEl.classList.add("admin");
+            });
+        }
+
+        async function loadSessions() {
+            try {
+                const res = await fetch('/api/sessions');
+                const sessions = await res.json();
+
+                const compLabel = (id) => ({
+                    'delegowanie': 'Deleg.',
+                    'podejmowanie_decyzji': 'Decyzje',
+                    'okreslanie_priorytetow': 'Priory.',
+                    'udzielanie_feedbacku': 'Feedback',
+                }[id] || id);
+
+                const optionsHtml = sessions.map(s => {
+                    const date = s.saved_at ? new Date(s.saved_at).toLocaleString('pl-PL') : '';
+                    const score = s.score !== null ? ` | ${s.score.toFixed(2)}` : '';
+                    const comp = compLabel(s.competency || 'delegowanie');
+                    return `<option value="${escapeHtml(s.filename)}">[${comp}] ${escapeHtml(s.participant_id)} | ${date}${score} (${escapeHtml(s.saved_by || '?')})</option>`;
+                }).join('');
+                
+                document.getElementById('sessionA').innerHTML = '<option value="">Wybierz sesję...</option>' + optionsHtml;
+                document.getElementById('sessionB').innerHTML = '<option value="">Wybierz sesję...</option>' + optionsHtml;
+            } catch (e) {
+                showToast('Błąd ładowania sesji: ' + e.message, true);
+            }
+        }
+
+        async function loadComparison() {
+            const sessionA = document.getElementById('sessionA').value;
+            const sessionB = document.getElementById('sessionB').value;
+            
+            if (!sessionA || !sessionB) {
+                showToast('Wybierz obie sesje', true);
+                return;
+            }
+            
+            if (sessionA === sessionB) {
+                showToast('Wybierz dwie różne sesje', true);
+                return;
+            }
+            
+            try {
+                const res = await fetch(`/api/sessions/compare?a=${encodeURIComponent(sessionA)}&b=${encodeURIComponent(sessionB)}`);
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Błąd porównania');
+                }
+                
+                const data = await res.json();
+                renderComparison(data);
+            } catch (e) {
+                showToast('Błąd porównania: ' + e.message, true);
+            }
+        }
+
+        function renderComparison(data) {
+            const { session_a, session_b, comparison } = data;
+            
+            const html = `
+                <div class="comparison-grid">
+                    ${renderSessionPanel(session_a, 'A')}
+                    ${renderSessionPanel(session_b, 'B')}
+                </div>
+                ${renderDiffPanel(comparison, session_a, session_b)}
+            `;
+            
+            document.getElementById('comparisonResults').innerHTML = html;
+        }
+
+        function renderSessionPanel(session, label) {
+            const dateStr = session.saved_at ? new Date(session.saved_at).toLocaleString('pl-PL') : '-';
+            const score = session.ocena ?? session.ocena_delegowanie ?? '-';
+            
+            return `
+                <div class="session-panel">
+                    <div class="session-header" style="background: ${label === 'A' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(168, 85, 247, 0.2)'}">
+                        <h3>Sesja ${label}: ${session.participant_id}</h3>
+                        <div class="meta">${dateStr} | ${session.saved_by || '-'} | ${escapeHtml((session.competency || 'delegowanie').replace(/_/g, ' '))}</div>
+                    </div>
+                    <div class="session-body">
+                        <div class="score-summary">
+                            <div>
+                                <div class="score-big">${score}</div>
+                                <div class="score-label">Ocena końcowa</div>
+                            </div>
+                            <span class="poziom-badge">${session.poziom || '-'}</span>
+                        </div>
+                        
+                        <div class="section-title">Oceny wymiarów</div>
+                        ${Object.entries(session.dimension_scores || {}).map(([key, val]) => `
+                            <div class="dimension-row">
+                                <span class="dimension-name">${DIMENSION_NAMES[key] || key}</span>
+                                <span class="dimension-score" style="background: ${getScoreColor(val)}">${val?.toFixed(2) ?? '-'}</span>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="section-title">
+                            Feedback
+                            <button class="toggle-btn" onclick="toggleSection(this, 'feedback-${label}')">▼</button>
+                        </div>
+                        <div id="feedback-${label}" class="collapsible expanded feedback-section">
+                            <p class="feedback-text">${session.feedback?.summary || '-'}</p>
+                            ${session.feedback?.mocne_strony?.length ? `
+                                <strong style="color:#4ade80;font-size:0.85rem">Mocne strony:</strong>
+                                <ul class="feedback-list">
+                                    ${session.feedback.mocne_strony.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            ${session.feedback?.obszary_rozwoju?.length ? `
+                                <strong style="color:#f97316;font-size:0.85rem;margin-top:0.5rem;display:block">Do rozwoju:</strong>
+                                <ul class="feedback-list">
+                                    ${session.feedback.obszary_rozwoju.map(s => `<li>${s}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            <p class="feedback-text" style="margin-top:0.75rem"><strong>Rekomendacja:</strong> ${session.feedback?.recommendation || '-'}</p>
+                        </div>
+                        
+                        <div class="section-title">
+                            Prompty użyte
+                            <button class="toggle-btn" onclick="toggleSection(this, 'prompts-${label}')">▼</button>
+                        </div>
+                        <div id="prompts-${label}" class="collapsible">
+                            ${['parse', 'map', 'score', 'feedback'].map(mod => `
+                                <details style="margin-bottom:0.5rem">
+                                    <summary style="cursor:pointer;color:#94a3b8;font-size:0.85rem">${mod.toUpperCase()}</summary>
+                                    <div class="prompt-preview" style="margin-top:0.5rem">${escapeHtml(session.prompts?.[mod]?.user || '(brak danych)')}</div>
+                                </details>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDiffPanel(comparison, session_a, session_b) {
+            const scoreDiff = comparison.score_diff;
+            const scoreDiffClass = scoreDiff > 0 ? 'diff-positive' : scoreDiff < 0 ? 'diff-negative' : 'diff-neutral';
+            const scoreDiffStr = scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff?.toString() || '-';
+            
+            return `
+                <div class="diff-panel">
+                    <h3>Podsumowanie różnic</h3>
+                    
+                    <div class="diff-row">
+                        <div class="diff-header">Wymiar</div>
+                        <div></div>
+                        <div class="diff-header" style="text-align:center">Sesja A</div>
+                        <div class="diff-header" style="text-align:center">Sesja B</div>
+                        <div class="diff-header" style="text-align:center">Różnica</div>
+                    </div>
+                    
+                    <div class="diff-row" style="background: rgba(51, 65, 85, 0.3); border-radius: 6px; padding: 0.75rem;">
+                        <div class="diff-dimension" style="font-weight:600">OCENA KOŃCOWA</div>
+                        <div></div>
+                        <div class="diff-value">${session_a.ocena ?? session_a.ocena_delegowanie ?? '-'}</div>
+                        <div class="diff-value">${session_b.ocena ?? session_b.ocena_delegowanie ?? '-'}</div>
+                        <div class="diff-change ${scoreDiffClass}">${scoreDiffStr}</div>
+                    </div>
+                    
+                    ${Object.entries(comparison.dimension_diffs || {}).map(([key, diff]) => {
+                        const diffVal = diff.diff;
+                        const diffClass = diffVal > 0 ? 'diff-positive' : diffVal < 0 ? 'diff-negative' : 'diff-neutral';
+                        const diffStr = diffVal > 0 ? `+${diffVal.toFixed(2)}` : diffVal?.toFixed(2) || '-';
+                        return `
+                            <div class="diff-row">
+                                <div class="diff-dimension">${DIMENSION_NAMES[key] || key}</div>
+                                <div></div>
+                                <div class="diff-value">${diff.a?.toFixed(2) ?? '-'}</div>
+                                <div class="diff-value">${diff.b?.toFixed(2) ?? '-'}</div>
+                                <div class="diff-change ${diffClass}">${diffStr}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                    
+                    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #334155">
+                        <span style="color:#94a3b8;font-size:0.9rem">
+                            ${comparison.same_participant ? '✓ Ten sam uczestnik' : '⚠ Różni uczestnicy'}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getScoreColor(score) {
+            if (score === null || score === undefined) return 'rgba(100, 116, 139, 0.3)';
+            if (score >= 0.75) return 'rgba(74, 222, 128, 0.3)';
+            if (score >= 0.5) return 'rgba(250, 204, 21, 0.3)';
+            if (score >= 0.25) return 'rgba(251, 146, 60, 0.3)';
+            return 'rgba(248, 113, 113, 0.3)';
+        }
+
+        function toggleSection(btn, id) {
+            const section = document.getElementById(id);
+            const isExpanded = section.classList.contains('expanded');
+            section.classList.toggle('expanded');
+            btn.textContent = isExpanded ? '▶' : '▼';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function showToast(message, isError = false) {
+            LEMShared.showToast(message, isError);
+        }
+
+        loadUser();
+        loadAllDimNames().then(() => loadSessions());
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+Jesteś ekspertem w ocenie kompetencji menedżerskich według modelu LEM.
+
+Twoim zadaniem jest przeanalizować odpowiedź uczestnika i znaleźć KONKRETNE CYTATY (fragmenty tekstu) 
+które stanowią dowód na obecność każdego z 7 wymiarów kompetencji DELEGOWANIE.
+
+7 WYMIARÓW DELEGOWANIA:
+
+1. INTENCJA - Nadawanie intencji biznesowej
+   Szukaj: Czy menedżer wyjaśnia PO CO zadanie jest wykonywane, jaki ma sens biznesowy, 
+   jak łączy się ze strategią organizacji, jakie korzyści rozwojowe dla pracownika.
+   
+2. STAN DOCELOWY - Określenie stanu docelowego
+   Szukaj: Czy precyzyjnie definiuje REZULTAT końcowy, stan docelowy, konkretne parametry sukcesu,
+   kryteria ukończenia zadania.
+   
+3. METODA POMIARU - Ustalenie metody pomiaru
+   Szukaj: Czy określa JAK będzie mierzony sukces - wskaźniki, produkty, zachowania,
+   konkretne kryteria oceny wykonania.
+   
+4. POZIOM ODPOWIEDZIALNOŚCI - Wyznaczenie poziomu odpowiedzialności
+   Szukaj: Czy deleguje ODPOWIEDZIALNOŚĆ (nie tylko zadania), uprawnienia decyzyjne,
+   autonomię, odpowiedzialność procesową, zadania strategiczne.
+   
+5. HARMONOGRAM - Zaplanowanie harmonogramu
+   Szukaj: Czy ustala harmonogram W KONSULTACJI z pracownikiem, pyta o możliwości,
+   wspólnie ustala terminy, określa kamienie milowe.
+   
+6. MONITOROWANIE - Określenie procesu monitorowania
+   Szukaj: Czy definiuje PLAN monitorowania, punkty kontrolne, momenty sprawdzenia postępów,
+   regularne check-iny, komunikację etapową.
+   
+7. SPRAWDZENIE ZROZUMIENIA - Sprawdzenie zrozumienia przez pracownika
+   Szukaj: Czy stosuje PYTANIA OTWARTE aby sprawdzić jak pracownik rozumie zadanie,
+   weryfikuje zrozumienie celów i procesu, zachęca do pytań i współtworzenia.
+
+SPARSOWANA ODPOWIEDŹ UCZESTNIKA:
+{parsed_response}
+
+INSTRUKCJE:
+1. Dla każdego z 7 wymiarów:
+   - Znajdź maksymalnie 2 NAJLEPSZE cytaty (dosłowne fragmenty tekstu)
+   - Cytaty powinny być konkretne i zwięzłe (1-3 zdania)
+   - Jeśli wymiar NIE jest obecny w odpowiedzi, zwróć pustą listę cytatów
+   
+2. Oceń czy wymiar jest obecny (czy_obecny: true/false):
+   - true = znalazłeś konkretne dowody w tekście
+   - false = brak dowodów lub tylko ogólniki
+   
+3. Dodaj krótką notatkę (1 zdanie) wyjaśniającą co znalazłeś lub czego brakuje
+
+ZWRÓĆ WYNIK W FORMACIE JSON:
+{{
+  "intencja": {{
+    "wymiar": "intencja",
+    "znalezione_fragmenty": ["cytat 1", "cytat 2"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "stan_docelowy": {{
+    "wymiar": "stan_docelowy",
+    "znalezione_fragmenty": ["cytat 1"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "metoda_pomiaru": {{...}},
+  "poziom_odpowiedzialnosci": {{...}},
+  "harmonogram": {{...}},
+  "monitorowanie": {{...}},
+  "sprawdzenie_zrozumienia": {{...}}
+}}
+
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowych komentarzy
+- Cytaty muszą być DOSŁOWNE (skopiowane z tekstu uczestnika)
+- Maksymalnie 2 cytaty na wymiar
+- Jeśli brak dowodów, znalezione_fragmenty = []
+- Bądź WYMAGAJĄCY - obecność wymiaru to konkretne dowody, nie ogólniki

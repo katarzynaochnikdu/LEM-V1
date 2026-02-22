@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEM - Prompty</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <style>
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 12px;
+        }
+        .module-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .module-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .version-list {
+            margin-top: 8px;
+            border-top: 1px solid #21262d;
+            padding-top: 8px;
+        }
+        .version-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid #161b22;
+        }
+        .version-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .editor-panel {
+            display: none;
+        }
+        .editor-panel.visible {
+            display: block;
+        }
+        .editor-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .prompt-editor {
+            min-height: 360px;
+            font-family: "Cascadia Code", Consolas, monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-row">
+                <div class="title-wrap">
+                    <h1>LEM - Prompty</h1>
+                    <p>Wersjonowanie i aktywacja promptów per kompetencja</p>
+                </div>
+                <nav class="nav-tabs">
+                    <a href="/ui">Diagnostyka</a>
+                    <a href="/prompts" class="active">Prompty</a>
+                    <a href="/compare">Porównywarka</a>
+                    <a href="/calibration">Kalibracja</a>
+                </nav>
+                <div class="user-bar">
+                    <span class="user-name" id="userNameDisplay"></span>
+                    <span class="user-role" id="userRoleDisplay"></span>
+                    <button class="btn-sm danger" onclick="LEMShared.doLogout()">Wyloguj</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="panel">
+            <div class="form-row" style="align-items:end">
+                <div style="max-width:300px;">
+                    <label for="competencySelect">Kompetencja</label>
+                    <select id="competencySelect" onchange="onCompetencyChange()">
+                        <option value="delegowanie">Delegowanie</option>
+                        <option value="podejmowanie_decyzji">Podejmowanie decyzji</option>
+                        <option value="okreslanie_priorytetow">Określanie priorytetów</option>
+                        <option value="udzielanie_feedbacku">Informacja zwrotna</option>
+                    </select>
+                </div>
+            </div>
+            <p class="muted" style="margin-top:8px;">Zmienne w klamrach (np. <code>{response_text}</code>) są podstawiane runtime.</p>
+        </section>
+
+        <section class="panel">
+            <h2>Moduły promptów</h2>
+            <div class="modules-grid" id="modulesGrid"></div>
+        </section>
+
+        <section class="panel editor-panel" id="editorPanel">
+            <div class="form-row" style="justify-content:space-between; align-items:center;">
+                <h2 id="editorTitle">Edytor promptu</h2>
+                <span class="badge" id="editorVersion"></span>
+            </div>
+            <div class="editor-row">
+                <div>
+                    <label>Nazwa nowej wersji</label>
+                    <input type="text" id="newVersionName" placeholder="np. v2_stricter">
+                </div>
+                <div>
+                    <label>Opis zmian</label>
+                    <input type="text" id="newVersionDesc" placeholder="np. ostrzejsze kryteria">
+                </div>
+            </div>
+            <div>
+                <label>Treść promptu</label>
+                <textarea class="prompt-editor" id="promptContent"></textarea>
+            </div>
+            <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn" onclick="closeEditor()">Zamknij</button>
+                <button class="btn btn-primary" onclick="saveAsNewVersion()">Zapisz jako nową wersję</button>
+                <button class="btn btn-success" onclick="saveAndActivate()">Zapisz i aktywuj</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/shared.js"></script>
+    <script>
+        let currentModule = null;
+        let CURRENT_COMPETENCY = "delegowanie";
+
+        function onCompetencyChange() {
+            CURRENT_COMPETENCY = document.getElementById("competencySelect").value;
+            loadModules();
+        }
+
+        async function initUser() {
+            await LEMShared.ensureAuth((user) => {
+                document.getElementById("userNameDisplay").textContent = user.username;
+                const roleEl = document.getElementById("userRoleDisplay");
+                roleEl.textContent = user.role;
+                if (user.role === "admin") roleEl.classList.add("admin");
+            });
+        }
+
+        async function loadModules() {
+            try {
+                const res = await fetch("/api/prompts");
+                const modules = await res.json();
+                const grid = document.getElementById("modulesGrid");
+                grid.innerHTML = modules.map((m) => {
+                    const activeLabel = typeof m.active === "object" && m.active !== null
+                        ? (m.active[CURRENT_COMPETENCY] || "brak")
+                        : (m.active || "brak");
+                    return `<article class="module-card">
+                        <div class="module-head">
+                            <h3>${m.module.toUpperCase()}</h3>
+                            <span class="badge">${LEMShared.escHtml(activeLabel)}</span>
+                        </div>
+                        <p class="muted">${LEMShared.escHtml(m.description)}</p>
+                        <div class="version-list" id="versions-${m.module}"><span class="muted">Ładowanie...</span></div>
+                        <button class="btn btn-primary" onclick="openEditor('${m.module}')">Edytuj prompt</button>
+                    </article>`;
+                }).join("");
+                for (const m of modules) {
+                    await loadVersions(m.module);
+                }
+            } catch (e) {
+                LEMShared.showToast("Błąd ładowania modułów: " + e.message, true);
+            }
+        }
+
+        async function loadVersions(module) {
+            try {
+                const res = await fetch(`/api/prompts/${module}?competency=${CURRENT_COMPETENCY}`);
+                const data = await res.json();
+                const container = document.getElementById(`versions-${module}`);
+                if (!data.versions || data.versions.length === 0) {
+                    container.innerHTML = '<span class="muted">Brak wersji</span>';
+                    return;
+                }
+                container.innerHTML = data.versions.map((v) => `<div class="version-item">
+                    <span>${LEMShared.escHtml(v.name)} ${v.is_active ? "✓" : ""}</span>
+                    <span class="version-actions">
+                        <button class="btn-sm" onclick="viewVersion('${module}', '${v.name}')">Podgląd</button>
+                        ${!v.is_active ? `<button class="btn-sm" onclick="activateVersion('${module}', '${v.name}')">Aktywuj</button>` : ""}
+                    </span>
+                </div>`).join("");
+            } catch (_) {}
+        }
+
+        async function viewVersion(module, version) {
+            try {
+                const res = await fetch(`/api/prompts/${module}/${version}`);
+                const data = await res.json();
+                currentModule = module;
+                document.getElementById("editorTitle").textContent = `${module.toUpperCase()} - ${version}`;
+                document.getElementById("editorVersion").textContent = data.is_active ? "AKTYWNA" : "NIEAKTYWNA";
+                document.getElementById("promptContent").value = data.content;
+                document.getElementById("newVersionName").value = "";
+                document.getElementById("newVersionDesc").value = "";
+                document.getElementById("editorPanel").classList.add("visible");
+            } catch (e) {
+                LEMShared.showToast("Błąd ładowania wersji: " + e.message, true);
+            }
+        }
+
+        async function openEditor(module) {
+            try {
+                const res = await fetch(`/api/prompts/${module}?competency=${CURRENT_COMPETENCY}`);
+                const data = await res.json();
+                currentModule = module;
+                document.getElementById("editorTitle").textContent = `${module.toUpperCase()} - ${data.active_version || "nowy"}`;
+                document.getElementById("editorVersion").textContent = "AKTYWNA";
+                document.getElementById("promptContent").value = data.active_content || "";
+                document.getElementById("newVersionName").value = "";
+                document.getElementById("newVersionDesc").value = "";
+                document.getElementById("editorPanel").classList.add("visible");
+            } catch (e) {
+                LEMShared.showToast("Błąd otwierania edytora: " + e.message, true);
+            }
+        }
+
+        function closeEditor() {
+            currentModule = null;
+            document.getElementById("editorPanel").classList.remove("visible");
+        }
+
+        async function saveAsNewVersion() {
+            const versionName = document.getElementById("newVersionName").value.trim();
+            const description = document.getElementById("newVersionDesc").value.trim();
+            const content = document.getElementById("promptContent").value;
+            if (!currentModule) return;
+            if (!versionName) return LEMShared.showToast("Podaj nazwę nowej wersji", true);
+            if (!content) return LEMShared.showToast("Treść promptu nie może być pusta", true);
+            try {
+                const res = await fetch(`/api/prompts/${currentModule}`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        version_name: versionName,
+                        content,
+                        description,
+                        activate: false,
+                        competency: CURRENT_COMPETENCY,
+                    }),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || "Błąd zapisu");
+                }
+                LEMShared.showToast(`Zapisano wersję ${versionName}`);
+                await loadVersions(currentModule);
+            } catch (e) {
+                LEMShared.showToast("Błąd zapisu: " + e.message, true);
+            }
+        }
+
+        async function saveAndActivate() {
+            const versionName = document.getElementById("newVersionName").value.trim();
+            const description = document.getElementById("newVersionDesc").value.trim();
+            const content = document.getElementById("promptContent").value;
+            if (!currentModule) return;
+            if (!versionName) return LEMShared.showToast("Podaj nazwę nowej wersji", true);
+            if (!content) return LEMShared.showToast("Treść promptu nie może być pusta", true);
+            try {
+                const res = await fetch(`/api/prompts/${currentModule}`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        version_name: versionName,
+                        content,
+                        description,
+                        activate: true,
+                        competency: CURRENT_COMPETENCY,
+                    }),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || "Błąd zapisu");
+                }
+                LEMShared.showToast(`Zapisano i aktywowano ${versionName}`);
+                closeEditor();
+                await loadModules();
+            } catch (e) {
+                LEMShared.showToast("Błąd zapisu: " + e.message, true);
+            }
+        }
+
+        async function activateVersion(module, version) {
+            try {
+                const res = await fetch(`/api/prompts/${module}/activate`, {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({version, competency: CURRENT_COMPETENCY}),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || "Błąd aktywacji");
+                }
+                LEMShared.showToast(`Aktywowano ${version}`);
+                await loadModules();
+            } catch (e) {
+                LEMShared.showToast("Błąd aktywacji: " + e.message, true);
+            }
+        }
+
+        initUser();
+        loadModules();
+    </script>
+</body>
+</html>

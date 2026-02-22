@@ -1,0 +1,69 @@
+ODPOWIEDŹ UCZESTNIKA - POZIOM EFEKTYWNY+ (oczekiwana ocena: 2.5-2.75)
+
+Przygotowanie do rozmowy:
+Przygotowuję się do rozmowy delegującej analizując nowe priorytety kwartalne banku. 
+Centrala wyznaczyła trzy kluczowe obszary: wzrost przychodów z segmentu detalicznego, 
+poprawę omnichanelowej jakości obsługi oraz skrócenie czasu decyzyjnego. Wybieram projekt 
+związany z poprawą jakości obsługi jako najbardziej odpowiedni dla młodszego pracownika.
+
+Definiuję precyzyjnie stan docelowy projektu: wdrożenie nowego procesu obsługi reklamacji 
+który skróci średni czas odpowiedzi z 5 do 3 dni roboczych oraz podniesie wynik NPS o 10 
+punktów. Projekt ma być ukończony do 31 marca.
+
+Planuję metodę pomiaru: będziemy śledzić trzy wskaźniki - średni czas obsługi reklamacji 
+(cel: 3 dni), wynik NPS (cel: wzrost o 10 pkt) oraz liczbę wdrożonych usprawnień procesowych 
+(cel: minimum 5 kluczowych zmian).
+
+Przebieg rozmowy:
+1. Kontekst biznesowy: Zaczynam od wyjaśnienia że centrala wyznaczyła nowe priorytety 
+   kwartalne i jeden z nich - poprawa jakości obsługi - jest kluczowy dla naszego zespołu. 
+   "To nie tylko priorytet kwartalny, ale strategiczny kierunek rozwoju banku na najbliższe lata."
+
+2. Opis zadania: "Chcę abyś poprowadził projekt wdrożenia nowego procesu obsługi reklamacji. 
+   To będzie kompleksowy projekt obejmujący analizę obecnego stanu, zaprojektowanie nowego 
+   procesu, pilotaż i wdrożenie."
+
+3. Stan docelowy: "Do 31 marca chcę mieć działający nowy proces który skróci średni czas 
+   obsługi reklamacji z 5 do 3 dni roboczych. Dodatkowo oczekuję wzrostu NPS o 10 punktów 
+   oraz wdrożenia minimum 5 kluczowych usprawnień procesowych."
+
+4. Metoda pomiaru: "Będziemy mierzyć sukces przez trzy wskaźniki: średni czas obsługi 
+   (raportowany co tydzień), wynik NPS (mierzony co miesiąc) oraz liczbę wdrożonych 
+   usprawnień. Przygotuj dashboard który będzie pokazywał te metryki w czasie rzeczywistym."
+
+5. Odpowiedzialność: "Daję Ci pełną odpowiedzialność za ten projekt. Będziesz koordynował 
+   pracę zespołu, podejmował decyzje operacyjne i raportował postępy. Ja jestem dostępny 
+   jako wsparcie dla trudniejszych decyzji."
+
+6. Harmonogram: "Proponuję następujący harmonogram: analiza i design do 15 lutego, pilotaż 
+   w pierwszej połowie marca, pełne wdrożenie do 31 marca. Co o tym myślisz? Czy te terminy 
+   są realistyczne biorąc pod uwagę Twoje inne zobowiązania?"
+
+7. Monitorowanie: "Spotkajmy się co dwa tygodnie na 30 minut żeby omówić postępy, wyzwania 
+   i kolejne kroki. Dodatkowo przygotuj krótki raport statusu (1 strona) który będziesz 
+   wysyłać co tydzień. Jeśli napotkasz jakieś blokery, daj mi znać od razu - nie czekaj 
+   do regularnego spotkania."
+
+8. Sprawdzenie zrozumienia: "Opowiedz mi swoimi słowami jak rozumiesz cel tego projektu. 
+   Jakie widzisz główne wyzwania? Jakich zasobów będziesz potrzebował? Jak planujesz 
+   podejść do tego zadania?"
+
+Decyzje delegacyjne:
+Wybieram młodszego pracownika który ma potencjał ale brakuje mu pewności siebie. 
+To zadanie o średnim poziomie ryzyka - jest ważne dla realizacji priorytetów kwartalnych, 
+ale nie krytyczne dla ciągłości biznesu. Decyduję się delegować nie tylko zadania ale 
+również odpowiedzialność za proces - pracownik będzie właścicielem projektu i będzie 
+podejmował decyzje operacyjne samodzielnie.
+
+Stosuję tryb "delegowania z wsparciem" - daję autonomię ale zapewniam regularne punkty 
+kontrolne i dostępność do konsultacji. To pozwoli pracownikowi rozwijać się ale minimalizuje 
+ryzyko porażki projektu.
+
+Planowane efekty:
+- Nowy proces obsługi reklamacji wdrożony do 31 marca
+- Średni czas obsługi reklamacji spadnie z 5 do 3 dni roboczych
+- Wynik NPS wzrośnie o 10 punktów
+- Wdrożonych zostanie minimum 5 kluczowych usprawnień procesowych
+- Pracownik nabierze doświadczenia w zarządzaniu projektem procesowym
+- Pracownik rozwinie kompetencje w zakresie analizy procesów i zarządzania zmianą
+- Zrealizujemy kluczowy priorytet kwartalny banku

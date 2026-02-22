@@ -1,0 +1,32 @@
+{
+  "module": "parse",
+  "description": "Strukturyzacja odpowiedzi uczestnika na sekcje",
+  "active": {
+    "delegowanie": "v1_initial",
+    "podejmowanie_decyzji": "v1_decyzje",
+    "okreslanie_priorytetow": "v1_priorytety",
+    "udzielanie_feedbacku": "v1_feedbacku"
+  },
+  "versions": [
+    {
+      "name": "v1_initial",
+      "description": "Wersja początkowa - parsowanie delegowania (4 sekcje)",
+      "created_at": "2026-02-22T18:30:00Z"
+    },
+    {
+      "name": "v1_decyzje",
+      "description": "Parsowanie podejmowania decyzji (4 sekcje)",
+      "created_at": "2026-02-22T22:00:00Z"
+    },
+    {
+      "name": "v1_priorytety",
+      "description": "Parsowanie określania priorytetów (4 sekcje)",
+      "created_at": "2026-02-22T22:00:00Z"
+    },
+    {
+      "name": "v1_feedbacku",
+      "description": "Parsowanie udzielania informacji zwrotnej (4 sekcje)",
+      "created_at": "2026-02-22T22:00:00Z"
+    }
+  ]
+}

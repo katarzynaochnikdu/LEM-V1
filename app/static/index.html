@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEM - Diagnostyka</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <style>
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .competency-box {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #30363d;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #0d1117;
+        }
+        .chip input { width: auto; }
+        .runner-card {
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            background: #161b22;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .runner-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #1c2128;
+            border-bottom: 1px solid #30363d;
+        }
+        .steps {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .step {
+            border: 1px solid #30363d;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 11px;
+            color: #8b949e;
+        }
+        .step.active { color: #e3b341; border-color: #d29922; background: #2a1f00; }
+        .step.done { color: #3fb950; border-color: #238636; background: #0a200f; }
+        .step.error { color: #f85149; border-color: #da3633; background: #200a0a; }
+        .mod-block {
+            border-top: 1px solid #21262d;
+            padding: 10px 12px;
+        }
+        .mod-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #8b949e;
+        }
+        .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .pane {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #0d1117;
+            min-height: 140px;
+            overflow: hidden;
+        }
+        .pane h4 {
+            font-size: 11px;
+            color: #8b949e;
+            border-bottom: 1px solid #21262d;
+            padding: 7px 9px;
+            text-transform: uppercase;
+        }
+        .pane-body {
+            padding: 8px 10px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 260px;
+            overflow: auto;
+            font-family: "Cascadia Code", Consolas, monospace;
+            color: #adbac7;
+        }
+        .history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .history-list {
+            max-height: 260px;
+            overflow: auto;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #0d1117;
+        }
+        .history-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #161b22;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .history-item:hover {
+            background: #1c2128;
+        }
+        .history-preview {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            background: #0d1117;
+            padding: 10px;
+            font-size: 12px;
+            max-height: 260px;
+            overflow: auto;
+            white-space: pre-wrap;
+            font-family: "Cascadia Code", Consolas, monospace;
+        }
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid #30363d;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 980px) {
+            .split, .history-grid, .input-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-row">
+                <div class="title-wrap">
+                    <h1>LEM - Diagnostyka / Prompt Lab</h1>
+                    <p>Wielokompetencyjny runner: sekwencyjnie lub równolegle</p>
+                </div>
+                <nav class="nav-tabs">
+                    <a href="/ui" class="active">Diagnostyka</a>
+                    <a href="/prompts">Prompty</a>
+                    <a href="/compare">Porównywarka</a>
+                    <a href="/calibration">Kalibracja</a>
+                </nav>
+                <div class="user-bar">
+                    <span class="user-name" id="userNameDisplay"></span>
+                    <span class="user-role" id="userRoleDisplay"></span>
+                    <button class="btn-sm danger" onclick="LEMShared.doLogout()">Wyloguj</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="panel">
+            <h2>Wejście</h2>
+            <div class="input-grid">
+                <div>
+                    <label for="participantId">ID uczestnika</label>
+                    <input id="participantId" value="P001" />
+                </div>
+                <div>
+                    <label for="runMode">Tryb uruchomienia</label>
+                    <select id="runMode">
+                        <option value="sequential">Sekwencyjnie (stabilniej)</option>
+                        <option value="parallel">Równolegle (szybciej)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <label>Kompetencje do analizy</label>
+                <div>
+                    <button class="btn-sm" onclick="selectAllCompetencies(true)">Zaznacz wszystkie</button>
+                    <button class="btn-sm" onclick="selectAllCompetencies(false)">Wyczyść</button>
+                </div>
+                <div class="competency-box" id="competencyChecks"></div>
+            </div>
+            <div style="margin-top:8px;">
+                <label for="responseText">Odpowiedź uczestnika</label>
+                <textarea id="responseText" placeholder="Wklej odpowiedź uczestnika..."></textarea>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <button class="btn btn-success" id="btnRun" onclick="runAssessmentMulti()">Analizuj zaznaczone</button>
+                <button class="btn" onclick="clearAll()">Wyczyść</button>
+                <button class="btn" onclick="saveAllSessions()">Zapisz wszystkie sesje</button>
+                <span id="globalStatus" class="muted"></span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Wyniki</h2>
+            <div id="resultsRoot"></div>
+        </section>
+
+        <section class="panel">
+            <h2>Historia promptów i wyników</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                <button class="btn-sm" onclick="loadHistoryPanels()">Odśwież historię</button>
+                <button class="btn-sm" onclick="clearLocalHistory()">Wyczyść lokalną historię</button>
+            </div>
+            <div class="history-grid">
+                <div>
+                    <h3>Lokalnie (localStorage)</h3>
+                    <div class="history-list" id="localHistoryList"></div>
+                </div>
+                <div>
+                    <h3>Serwer (/api/runs)</h3>
+                    <div class="history-list" id="serverHistoryList"></div>
+                </div>
+            </div>
+            <div style="margin-top:10px;">
+                <h3>Podgląd wpisu</h3>
+                <div class="history-preview" id="historyPreview">Wybierz wpis historii.</div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/shared.js"></script>
+    <script>
+        const COMPETENCIES = [
+            { id: "delegowanie", label: "Delegowanie" },
+            { id: "podejmowanie_decyzji", label: "Podejmowanie decyzji" },
+            { id: "okreslanie_priorytetow", label: "Określanie priorytetów" },
+            { id: "udzielanie_feedbacku", label: "Informacja zwrotna" },
+        ];
+        const STEP_ORDER = ["parse", "map", "score", "feedback"];
+        const HISTORY_KEY = "lem.runHistory.v1";
+        let CURRENT_USER = null;
+        let LAST_SESSIONS = {};
+
+        function initCompetencyChecks() {
+            const box = document.getElementById("competencyChecks");
+            box.innerHTML = COMPETENCIES.map((c) => `
+                <label class="chip">
+                    <input type="checkbox" value="${c.id}" checked />
+                    <span>${c.label}</span>
+                </label>
+            `).join("");
+        }
+
+        function selectAllCompetencies(state) {
+            document.querySelectorAll("#competencyChecks input[type=checkbox]").forEach((el) => {
+                el.checked = state;
+            });
+        }
+
+        function getSelectedCompetencies() {
+            return Array.from(document.querySelectorAll("#competencyChecks input[type=checkbox]:checked")).map((el) => el.value);
+        }
+
+        function clearAll() {
+            document.getElementById("responseText").value = "";
+            document.getElementById("resultsRoot").innerHTML = "";
+            document.getElementById("globalStatus").textContent = "";
+            LAST_SESSIONS = {};
+        }
+
+        function ensureRunnerCard(competency) {
+            const root = document.getElementById("resultsRoot");
+            const id = `card-${competency}`;
+            let card = document.getElementById(id);
+            if (card) return card;
+            const label = COMPETENCIES.find((c) => c.id === competency)?.label || competency;
+            card = document.createElement("article");
+            card.className = "runner-card";
+            card.id = id;
+            card.innerHTML = `
+                <div class="runner-head">
+                    <strong>${LEMShared.escHtml(label)}</strong>
+                    <div class="steps" id="steps-${competency}">
+                        ${STEP_ORDER.map((s) => `<span class="step" id="step-${competency}-${s}">${s}</span>`).join("")}
+                    </div>
+                </div>
+                <div id="mods-${competency}"></div>
+            `;
+            root.appendChild(card);
+            return card;
+        }
+
+        function setStepState(competency, step, state) {
+            const el = document.getElementById(`step-${competency}-${step}`);
+            if (!el) return;
+            el.className = "step" + (state ? ` ${state}` : "");
+        }
+
+        function pretty(data) {
+            return JSON.stringify(data, null, 2);
+        }
+
+        function renderPromptPane(prompt, promptMeta) {
+            const parts = [];
+            if (promptMeta) {
+                parts.push(`[meta] module=${promptMeta.module} competency=${promptMeta.competency} version=${promptMeta.active_version || "?"}`);
+            }
+            if (prompt?.system) parts.push("\n[system]\n" + prompt.system);
+            if (prompt?.user) parts.push("\n[user]\n" + prompt.user);
+            if (prompt?.per_dimension) {
+                for (const [k, v] of Object.entries(prompt.per_dimension)) {
+                    parts.push(`\n[per_dimension:${k}]\n${v}`);
+                }
+            }
+            if (!parts.length) return "(brak promptu)";
+            return parts.join("\n");
+        }
+
+        function renderResultPane(module, data) {
+            if (module === "score" && data?.ocena != null) {
+                const header = `ocena=${Number(data.ocena).toFixed(2)} poziom=${data.poziom || "-"}`;
+                return `${header}\n\n${pretty(data.dimension_scores || {})}`;
+            }
+            if (module === "feedback") {
+                return pretty({
+                    summary: data?.summary,
+                    recommendation: data?.recommendation,
+                    mocne_strony: data?.mocne_strony,
+                    obszary_rozwoju: data?.obszary_rozwoju,
+                });
+            }
+            return pretty(data);
+        }
+
+        function renderModuleResult(competency, module, payload, elapsedMs) {
+            const mods = document.getElementById(`mods-${competency}`);
+            let block = document.getElementById(`mod-${competency}-${module}`);
+            if (!block) {
+                block = document.createElement("section");
+                block.className = "mod-block";
+                block.id = `mod-${competency}-${module}`;
+                mods.appendChild(block);
+            }
+            const promptText = renderPromptPane(payload?._prompt, payload?._prompt_meta);
+            const resultText = renderResultPane(module, payload);
+            block.innerHTML = `
+                <div class="mod-head">
+                    <strong>${module.toUpperCase()}</strong>
+                    <span>${(elapsedMs / 1000).toFixed(1)}s</span>
+                </div>
+                <div class="split">
+                    <div class="pane">
+                        <h4>Prompt</h4>
+                        <div class="pane-body">${LEMShared.escHtml(promptText)}</div>
+                    </div>
+                    <div class="pane">
+                        <h4>Wynik</h4>
+                        <div class="pane-body">${LEMShared.escHtml(resultText)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getLocalHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function pushLocalHistory(entry) {
+            const list = getLocalHistory();
+            list.unshift(entry);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 300)));
+        }
+
+        async function saveRunServer(entry) {
+            try {
+                await fetch("/api/runs/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        participant_id: entry.participant_id,
+                        competency: entry.competency,
+                        module: entry.module,
+                        run: entry,
+                    }),
+                });
+            } catch (_) {}
+        }
+
+        async function runSingleCompetency(competency, pid, text) {
+            ensureRunnerCard(competency);
+            STEP_ORDER.forEach((s) => setStepState(competency, s, ""));
+            const startedAt = Date.now();
+            const base = { competency, participant_id: pid, input_text: text };
+            const timings = {};
+
+            const parseStart = Date.now();
+            setStepState(competency, "parse", "active");
+            const parseResp = await fetch("/api/diagnostic/parse", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ response_text: text, competency }),
+            });
+            const parseData = await parseResp.json();
+            if (!parseResp.ok) throw new Error(parseData.detail || "Parser error");
+            timings.parse_ms = Date.now() - parseStart;
+            setStepState(competency, "parse", "done");
+            renderModuleResult(competency, "parse", parseData, timings.parse_ms);
+            const parseEntry = {
+                timestamp: new Date().toISOString(),
+                user: CURRENT_USER?.username || "unknown",
+                participant_id: pid,
+                competency,
+                module: "parse",
+                prompt: parseData._prompt || {},
+                prompt_meta: parseData._prompt_meta || {},
+                result: parseData,
+            };
+            pushLocalHistory(parseEntry);
+            await saveRunServer(parseEntry);
+
+            const mapStart = Date.now();
+            setStepState(competency, "map", "active");
+            const mapResp = await fetch("/api/diagnostic/map", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(parseData),
+            });
+            const mapData = await mapResp.json();
+            if (!mapResp.ok) throw new Error(mapData.detail || "Mapper error");
+            timings.map_ms = Date.now() - mapStart;
+            setStepState(competency, "map", "done");
+            renderModuleResult(competency, "map", mapData, timings.map_ms);
+            const mapEntry = {
+                timestamp: new Date().toISOString(),
+                user: CURRENT_USER?.username || "unknown",
+                participant_id: pid,
+                competency,
+                module: "map",
+                prompt: mapData._prompt || {},
+                prompt_meta: mapData._prompt_meta || {},
+                result: mapData,
+            };
+            pushLocalHistory(mapEntry);
+            await saveRunServer(mapEntry);
+
+            const scoreStart = Date.now();
+            setStepState(competency, "score", "active");
+            const scoreResp = await fetch("/api/diagnostic/score", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(mapData),
+            });
+            const scoreData = await scoreResp.json();
+            if (!scoreResp.ok) throw new Error(scoreData.detail || "Scorer error");
+            timings.score_ms = Date.now() - scoreStart;
+            setStepState(competency, "score", "done");
+            renderModuleResult(competency, "score", scoreData, timings.score_ms);
+            const scoreEntry = {
+                timestamp: new Date().toISOString(),
+                user: CURRENT_USER?.username || "unknown",
+                participant_id: pid,
+                competency,
+                module: "score",
+                prompt: scoreData._prompt || {},
+                prompt_meta: scoreData._prompt_meta || {},
+                result: scoreData,
+            };
+            pushLocalHistory(scoreEntry);
+            await saveRunServer(scoreEntry);
+
+            const feedbackStart = Date.now();
+            setStepState(competency, "feedback", "active");
+            const feedbackResp = await fetch("/api/diagnostic/feedback", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(scoreData),
+            });
+            const feedbackData = await feedbackResp.json();
+            if (!feedbackResp.ok) throw new Error(feedbackData.detail || "Feedback error");
+            timings.feedback_ms = Date.now() - feedbackStart;
+            timings.total_ms = Date.now() - startedAt;
+            setStepState(competency, "feedback", "done");
+            renderModuleResult(competency, "feedback", feedbackData, timings.feedback_ms);
+            const feedbackEntry = {
+                timestamp: new Date().toISOString(),
+                user: CURRENT_USER?.username || "unknown",
+                participant_id: pid,
+                competency,
+                module: "feedback",
+                prompt: feedbackData._prompt || {},
+                prompt_meta: feedbackData._prompt_meta || {},
+                result: feedbackData,
+            };
+            pushLocalHistory(feedbackEntry);
+            await saveRunServer(feedbackEntry);
+
+            LAST_SESSIONS[competency] = {
+                participant_id: pid,
+                competency,
+                input_text: text,
+                steps: {
+                    parse: parseData,
+                    map: mapData,
+                    score: scoreData,
+                    feedback: feedbackData,
+                    timing: timings,
+                },
+            };
+        }
+
+        async function runAssessmentMulti() {
+            const text = document.getElementById("responseText").value.trim();
+            const pid = document.getElementById("participantId").value.trim() || "P001";
+            const selected = getSelectedCompetencies();
+            const mode = document.getElementById("runMode").value;
+            const btn = document.getElementById("btnRun");
+            const status = document.getElementById("globalStatus");
+
+            if (text.length < 50) {
+                return LEMShared.showToast("Odpowiedź musi mieć minimum 50 znaków.", true);
+            }
+            if (!selected.length) {
+                return LEMShared.showToast("Wybierz przynajmniej jedną kompetencję.", true);
+            }
+
+            btn.disabled = true;
+            status.innerHTML = `<span class="spinner"></span> Uruchamianie...`;
+            const totalStart = Date.now();
+
+            try {
+                if (mode === "parallel") {
+                    await Promise.all(selected.map(async (competency) => {
+                        try {
+                            await runSingleCompetency(competency, pid, text);
+                        } catch (err) {
+                            setStepState(competency, "parse", "error");
+                            setStepState(competency, "map", "error");
+                            setStepState(competency, "score", "error");
+                            setStepState(competency, "feedback", "error");
+                            throw new Error(`${competency}: ${err.message}`);
+                        }
+                    }));
+                } else {
+                    for (const competency of selected) {
+                        await runSingleCompetency(competency, pid, text);
+                    }
+                }
+                const sec = ((Date.now() - totalStart) / 1000).toFixed(1);
+                status.textContent = `Gotowe: ${selected.length} kompetencje w ${sec}s`;
+                LEMShared.showToast("Analiza zakończona");
+                await loadHistoryPanels();
+            } catch (err) {
+                status.textContent = "Błąd: " + err.message;
+                LEMShared.showToast("Błąd uruchomienia: " + err.message, true);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function saveAllSessions() {
+            const entries = Object.values(LAST_SESSIONS);
+            if (!entries.length) {
+                return LEMShared.showToast("Brak wyników do zapisu.", true);
+            }
+            for (const s of entries) {
+                await fetch("/api/sessions/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        participant_id: s.participant_id,
+                        competency: s.competency,
+                        steps: {
+                            input_text: s.input_text,
+                            parse: s.steps.parse,
+                            map: s.steps.map,
+                            score: s.steps.score,
+                            feedback: s.steps.feedback,
+                            timing: s.steps.timing,
+                        },
+                    }),
+                });
+            }
+            LEMShared.showToast(`Zapisano ${entries.length} sesji.`);
+        }
+
+        function clearLocalHistory() {
+            localStorage.removeItem(HISTORY_KEY);
+            loadHistoryPanels();
+        }
+
+        function previewEntry(obj) {
+            document.getElementById("historyPreview").textContent = pretty(obj);
+        }
+
+        async function loadHistoryPanels() {
+            const localList = getLocalHistory();
+            const localEl = document.getElementById("localHistoryList");
+            if (!localList.length) {
+                localEl.innerHTML = `<div class="history-item muted">Brak lokalnych wpisów.</div>`;
+            } else {
+                localEl.innerHTML = localList.slice(0, 80).map((h, idx) => `
+                    <div class="history-item" onclick="previewEntry(window.__localHistory[${idx}])">
+                        [${h.module}] ${h.competency} | ${h.participant_id} | ${new Date(h.timestamp).toLocaleString("pl-PL")}
+                    </div>
+                `).join("");
+            }
+            window.__localHistory = localList.slice(0, 80);
+
+            const serverEl = document.getElementById("serverHistoryList");
+            try {
+                const resp = await fetch("/api/runs");
+                const rows = await resp.json();
+                if (!rows.length) {
+                    serverEl.innerHTML = `<div class="history-item muted">Brak wpisów serwerowych.</div>`;
+                } else {
+                    serverEl.innerHTML = rows.slice(0, 80).map((r) => `
+                        <div class="history-item" onclick="loadRunDetail('${LEMShared.escHtml(r.filename)}')">
+                            [${r.module}] ${r.competency} | ${r.participant_id} | ${new Date(r.saved_at).toLocaleString("pl-PL")}
+                        </div>
+                    `).join("");
+                }
+            } catch (_) {
+                serverEl.innerHTML = `<div class="history-item muted">Błąd ładowania historii serwerowej.</div>`;
+            }
+        }
+
+        async function loadRunDetail(filename) {
+            try {
+                const resp = await fetch(`/api/runs/${encodeURIComponent(filename)}`);
+                const data = await resp.json();
+                previewEntry(data);
+                const run = data.run || {};
+                if (run.result?.raw_text) {
+                    document.getElementById("responseText").value = run.result.raw_text;
+                }
+            } catch (err) {
+                LEMShared.showToast("Błąd odczytu runu: " + err.message, true);
+            }
+        }
+
+        async function initUser() {
+            CURRENT_USER = await LEMShared.ensureAuth((u) => {
+                document.getElementById("userNameDisplay").textContent = u.username;
+                const roleEl = document.getElementById("userRoleDisplay");
+                roleEl.textContent = u.role;
+                if (u.role === "admin") roleEl.classList.add("admin");
+            });
+        }
+
+        initCompetencyChecks();
+        initUser();
+        loadHistoryPanels();
+    </script>
+</body>
+</html>

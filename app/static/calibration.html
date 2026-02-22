@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalibracja – LEM Assessment</title>
+    <link rel="stylesheet" href="/static/shared.css">
+    <style>
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        .competency-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .comp-tab {
+            padding: 8px 18px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #8b949e;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .comp-tab:hover { background: #21262d; color: #c9d1d9; }
+        .comp-tab.active { background: #1f6feb; color: white; border-color: #1f6feb; }
+
+        .panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .panel h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #58a6ff;
+            margin-bottom: 16px;
+        }
+        .panel h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #c9d1d9;
+            margin-bottom: 12px;
+        }
+
+        .weights-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .weight-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .weight-label {
+            width: 250px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+        .weight-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #21262d;
+            border-radius: 3px;
+            outline: none;
+        }
+        .weight-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #58a6ff;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .weight-value {
+            width: 60px;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c9d1d9;
+            font-family: 'Cascadia Code', monospace;
+        }
+        .weight-total {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #21262d;
+        }
+        .weight-total.valid { color: #3fb950; }
+        .weight-total.invalid { color: #f85149; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-primary { background: #238636; color: white; }
+        .btn-primary:hover { background: #2ea043; }
+        .btn-primary:disabled { background: #21262d; color: #484f58; cursor: not-allowed; }
+
+        .algo-list {
+            list-style: none;
+            padding: 0;
+        }
+        .algo-list li {
+            padding: 6px 0;
+            font-size: 13px;
+            color: #c9d1d9;
+            border-bottom: 1px solid #1c2128;
+        }
+        .algo-list li:last-child { border: none; }
+
+        .sessions-list { max-height: 400px; overflow-y: auto; }
+        .sessions-list table { width: 100%; border-collapse: collapse; }
+        .sessions-list th {
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #8b949e;
+            border-bottom: 1px solid #21262d;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            background: #161b22;
+        }
+        .sessions-list td {
+            padding: 8px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #1c2128;
+        }
+        .sessions-list tr:hover { background: #1c2128; }
+        .score-cell {
+            font-weight: 600;
+            font-family: 'Cascadia Code', monospace;
+        }
+
+        .dim-table { width: 100%; border-collapse: collapse; }
+        .dim-table th {
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8b949e;
+            border-bottom: 1px solid #21262d;
+            text-transform: uppercase;
+        }
+        .dim-table td {
+            padding: 8px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid #161b22;
+            vertical-align: top;
+        }
+        .dim-expand-btn {
+            background: none;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .dim-expand-btn:hover { background: #21262d; color: #c9d1d9; }
+        .levels-detail {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 6px;
+        }
+        .levels-detail.open { display: block; }
+        .level-row {
+            padding: 6px 0;
+            border-bottom: 1px solid #1c2128;
+            font-size: 12px;
+        }
+        .level-row:last-child { border: none; }
+        .level-score {
+            display: inline-block;
+            width: 30px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+        .level-desc { color: #c9d1d9; }
+        .level-behaviors {
+            margin-top: 4px;
+            padding-left: 34px;
+            color: #8b949e;
+            font-size: 11px;
+        }
+
+        .status-msg {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .status-msg.ok { color: #3fb950; }
+        .status-msg.err { color: #f85149; }
+
+        @media (max-width: 768px) {
+            .weight-label { width: 150px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-row">
+                <div class="title-wrap">
+                    <h1>LEM - Panel kalibracji</h1>
+                    <p>Kalibracja wag i przegląd sesji per kompetencja</p>
+                </div>
+                <nav class="nav-tabs">
+                    <a href="/ui">Diagnostyka</a>
+                    <a href="/prompts">Prompty</a>
+                    <a href="/compare">Porównywarka</a>
+                    <a href="/calibration" class="active">Kalibracja</a>
+                </nav>
+                <div class="user-bar">
+                    <span class="user-name" id="userNameDisplay"></span>
+                    <span class="user-role" id="userRoleDisplay"></span>
+                    <button class="btn-sm danger" onclick="LEMShared.doLogout()">Wyloguj</button>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <div class="container">
+        <div class="competency-tabs" id="compTabs"></div>
+
+        <!-- Algorytm -->
+        <div class="panel" id="algoPanel">
+            <h2 id="algoTitle">Algorytm kompetencji</h2>
+            <ol class="algo-list" id="algoList"></ol>
+        </div>
+
+        <!-- Wymiary & wagi -->
+        <div class="panel">
+            <h2>Wagi wymiarów</h2>
+            <div class="weights-grid" id="weightsGrid"></div>
+            <div class="weight-total" id="weightTotal"></div>
+            <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+                <button class="btn btn-primary" id="btnSaveWeights" onclick="saveWeights()">Zapisz wagi</button>
+                <span class="status-msg" id="weightsStatus"></span>
+            </div>
+        </div>
+
+        <!-- Wymiary szczegóły -->
+        <div class="panel">
+            <h2>Definicje wymiarów</h2>
+            <div id="dimsDetail"></div>
+        </div>
+
+        <!-- Sesje filtrowane -->
+        <div class="panel">
+            <h2>Sesje diagnostyczne <span style="font-size:13px;color:#8b949e;font-weight:400" id="sessionsCount"></span></h2>
+            <div class="sessions-list" id="sessionsList"></div>
+        </div>
+    </div>
+
+    <script src="/static/shared.js"></script>
+    <script>
+        let COMPETENCIES = [];
+        let CURRENT = 'delegowanie';
+        let CURRENT_WEIGHTS = {};
+        let CURRENT_DIMS = {};
+
+        async function init() {
+            await loadUser();
+            const resp = await fetch('/api/competencies');
+            COMPETENCIES = await resp.json();
+            renderTabs();
+            await switchCompetency(CURRENT);
+        }
+
+        function renderTabs() {
+            const el = document.getElementById('compTabs');
+            el.innerHTML = COMPETENCIES.map(c =>
+                `<div class="comp-tab ${c.id === CURRENT ? 'active' : ''}" onclick="switchCompetency('${c.id}')">
+                    ${esc(c.nazwa)}
+                    <span style="font-size:11px;opacity:0.7;margin-left:4px;">(${c.wymiary_count || '?'}w)</span>
+                </div>`
+            ).join('');
+        }
+
+        async function switchCompetency(id) {
+            CURRENT = id;
+            renderTabs();
+            await Promise.all([loadDimensions(), loadWeights(), loadSessions()]);
+        }
+
+        async function loadDimensions() {
+            const resp = await fetch('/api/competencies/' + CURRENT + '/dimensions?detail=true');
+            const data = await resp.json();
+            CURRENT_DIMS = data.dimensions;
+
+            document.getElementById('algoTitle').textContent = data.nazwa + ' – Algorytm';
+            const algoEl = document.getElementById('algoList');
+            algoEl.innerHTML = (data.algorytm || []).map(s => `<li>${esc(s)}</li>`).join('');
+
+            let html = '';
+            for (const [key, dim] of Object.entries(data.dimensions)) {
+                html += `<div style="margin-bottom:16px;background:#0d1117;border:1px solid #21262d;border-radius:8px;overflow:hidden;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;background:#1c2128;" onclick="toggleDimDetail('dim-${key}')">
+                        <div>
+                            <span style="font-weight:600;color:#c9d1d9;font-size:14px;">${esc(dim.nazwa)}</span>
+                            <span style="color:#8b949e;font-size:12px;margin-left:12px;">${esc(dim.opis)}</span>
+                        </div>
+                        <button class="dim-expand-btn" id="btn-dim-${key}">${dim.poziomy_count} poziomów ▾</button>
+                    </div>
+                    <div class="levels-detail" id="dim-${key}">`;
+                if (dim.poziomy) {
+                    const sortedKeys = Object.keys(dim.poziomy).sort((a, b) => parseFloat(a) - parseFloat(b));
+                    for (const lvl of sortedKeys) {
+                        const p = dim.poziomy[lvl];
+                        html += `<div class="level-row">
+                            <span class="level-score">${lvl}</span>
+                            <span class="level-desc">${esc(p.opis)}</span>`;
+                        if (p.zachowania && p.zachowania.length > 0) {
+                            html += `<div class="level-behaviors">${p.zachowania.map(z => '• ' + esc(z)).join('<br>')}</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                }
+                html += `</div></div>`;
+            }
+            document.getElementById('dimsDetail').innerHTML = html;
+        }
+
+        function toggleDimDetail(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('open');
+        }
+
+        async function loadWeights() {
+            const resp = await fetch('/weights?competency=' + CURRENT);
+            const data = await resp.json();
+            CURRENT_WEIGHTS = data[CURRENT] || {};
+
+            const grid = document.getElementById('weightsGrid');
+            let html = '';
+            for (const [key, weight] of Object.entries(CURRENT_WEIGHTS)) {
+                const label = CURRENT_DIMS[key]?.nazwa || key;
+                const pct = (weight * 100).toFixed(0);
+                html += `<div class="weight-row">
+                    <span class="weight-label">${esc(label)}</span>
+                    <input type="range" class="weight-slider" min="0" max="50" step="1" value="${pct}" data-key="${key}" oninput="onSlider(this)">
+                    <span class="weight-value" id="wv-${key}">${pct}%</span>
+                </div>`;
+            }
+            grid.innerHTML = html;
+            updateTotal();
+        }
+
+        function onSlider(el) {
+            const key = el.dataset.key;
+            const val = parseInt(el.value);
+            CURRENT_WEIGHTS[key] = val / 100;
+            document.getElementById('wv-' + key).textContent = val + '%';
+            updateTotal();
+        }
+
+        function updateTotal() {
+            const total = Object.values(CURRENT_WEIGHTS).reduce((s, v) => s + v, 0);
+            const pct = (total * 100).toFixed(0);
+            const el = document.getElementById('weightTotal');
+            const valid = Math.abs(total - 1.0) < 0.011;
+            el.textContent = `Suma wag: ${pct}%` + (valid ? ' ✓' : ' (musi = 100%)');
+            el.className = 'weight-total ' + (valid ? 'valid' : 'invalid');
+            document.getElementById('btnSaveWeights').disabled = !valid;
+        }
+
+        async function saveWeights() {
+            const statusEl = document.getElementById('weightsStatus');
+            statusEl.textContent = 'Zapisywanie...';
+            statusEl.className = 'status-msg';
+            try {
+                const resp = await fetch('/api/weights/' + CURRENT, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({weights: CURRENT_WEIGHTS}),
+                });
+                if (!resp.ok) {
+                    const data = await resp.json();
+                    throw new Error(data.detail || 'Błąd');
+                }
+                statusEl.textContent = 'Zapisano wagi';
+                statusEl.className = 'status-msg ok';
+            } catch (e) {
+                statusEl.textContent = 'Błąd: ' + e.message;
+                statusEl.className = 'status-msg err';
+            }
+        }
+
+        async function loadSessions() {
+            const listEl = document.getElementById('sessionsList');
+            listEl.innerHTML = '<p style="color:#8b949e;font-size:13px">Ładowanie...</p>';
+            try {
+                const resp = await fetch('/api/sessions?competency=' + CURRENT);
+                const sessions = await resp.json();
+                document.getElementById('sessionsCount').textContent = `(${sessions.length})`;
+                if (sessions.length === 0) {
+                    listEl.innerHTML = '<p style="color:#8b949e;font-size:13px">Brak sesji dla tej kompetencji.</p>';
+                    return;
+                }
+                let html = '<table><thead><tr><th>Data</th><th>Uczestnik</th><th>Ocena</th><th>Zapisał</th><th></th></tr></thead><tbody>';
+                for (const s of sessions) {
+                    const dt = s.saved_at ? new Date(s.saved_at).toLocaleString('pl-PL') : '?';
+                    const score = s.score != null ? s.score.toFixed(2) : '—';
+                    html += `<tr>
+                        <td>${esc(dt)}</td>
+                        <td>${esc(s.participant_id || '?')}</td>
+                        <td class="score-cell">${score}</td>
+                        <td>${esc(s.saved_by || '?')}</td>
+                        <td><a href="/api/sessions/${encodeURIComponent(s.filename)}" target="_blank" style="color:#58a6ff;font-size:12px">JSON</a></td>
+                    </tr>`;
+                }
+                html += '</tbody></table>';
+                listEl.innerHTML = html;
+            } catch (e) {
+                listEl.innerHTML = '<p style="color:#f85149;font-size:13px">Błąd: ' + esc(e.message) + '</p>';
+            }
+        }
+
+        function esc(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        let _currentUser = null;
+        async function loadUser() {
+            try {
+                const resp = await fetch('/api/auth/me');
+                if (!resp.ok) { window.location.href = '/login'; return; }
+                _currentUser = await resp.json();
+                document.getElementById('userNameDisplay').textContent = _currentUser.username;
+                const roleEl = document.getElementById('userRoleDisplay');
+                roleEl.textContent = _currentUser.role;
+                if (_currentUser.role === "admin") roleEl.classList.add("admin");
+            } catch { window.location.href = '/login'; }
+        }
+
+        init();
+    </script>
+</body>
+</html>

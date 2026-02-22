@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEM – Logowanie</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0f1117;
+            color: #e1e4e8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 380px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 40px 32px 32px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .logo h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #58a6ff;
+            letter-spacing: -0.5px;
+        }
+        .logo p {
+            font-size: 13px;
+            color: #8b949e;
+            margin-top: 6px;
+        }
+        .field {
+            margin-bottom: 16px;
+        }
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c9d1d9;
+            margin-bottom: 6px;
+        }
+        .field input {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: #c9d1d9;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        .field input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 11px;
+            background: #238636;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.15s;
+        }
+        .btn-login:hover { background: #2ea043; }
+        .btn-login:disabled {
+            background: #21262d;
+            color: #484f58;
+            cursor: not-allowed;
+        }
+        .error-msg {
+            background: #200a0a;
+            border: 1px solid #da3633;
+            border-radius: 6px;
+            color: #f85149;
+            font-size: 13px;
+            padding: 10px 12px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #484f58;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <h1>LEM</h1>
+            <p>System Oceny Kompetencji</p>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <form id="loginForm" onsubmit="doLogin(event)">
+            <div class="field">
+                <label for="username">Login</label>
+                <input type="text" id="username" name="username" autocomplete="username" autofocus required>
+            </div>
+            <div class="field">
+                <label for="password">Hasło</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn-login" id="btnLogin">Zaloguj się</button>
+        </form>
+
+        <div class="footer">Dostęp tylko dla autoryzowanych użytkowników</div>
+    </div>
+
+    <script>
+        async function doLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            const errEl = document.getElementById('errorMsg');
+            errEl.classList.remove('visible');
+            btn.disabled = true;
+            btn.textContent = 'Logowanie...';
+
+            try {
+                const resp = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value.trim(),
+                        password: document.getElementById('password').value,
+                    }),
+                });
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => ({}));
+                    throw new Error(data.detail || 'Błąd logowania');
+                }
+                window.location.href = '/ui';
+            } catch (err) {
+                errEl.textContent = err.message;
+                errEl.classList.add('visible');
+                btn.disabled = false;
+                btn.textContent = 'Zaloguj się';
+            }
+        }
+    </script>
+</body>
+</html>

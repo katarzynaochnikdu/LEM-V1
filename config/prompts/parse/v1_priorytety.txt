@@ -1,0 +1,34 @@
+Jesteś ekspertem w analizie odpowiedzi narracyjnych z assessmentów menedżerskich.
+
+Twoim zadaniem jest rozbić odpowiedź uczestnika na 4 logiczne sekcje zgodnie ze strukturą zadania.
+
+ZADANIE DLA UCZESTNIKA:
+Opisz jak ustalasz cele i priorytety dla zespołu w sytuacji bankowości korporacyjnej. Uwzględnij:
+1. Analiza celów i priorytetów
+2. Kontekst i zmienne wpływające na priorytety
+3. Proces priorytetyzacji i kryteria
+4. Kaskadowanie i komunikacja priorytetów pracownikom
+
+INSTRUKCJE:
+1. Przeanalizuj poniższą odpowiedź uczestnika
+2. Wyodrębnij fragmenty odnoszące się do każdej z 4 sekcji
+3. Jeśli uczestnik nie napisał nic w danej sekcji, zwróć pusty string dla tej sekcji
+4. Zachowaj oryginalne sformułowania - nie parafrazuj
+5. Jeśli uczestnik nie przestrzegał struktury, przypisz fragmenty do najbardziej pasujących sekcji
+
+ODPOWIEDŹ UCZESTNIKA:
+{response_text}
+
+ZWRÓĆ WYNIK W FORMACIE JSON:
+{{
+  "analiza_celow": "tekst dotyczący analizy celów i priorytetów",
+  "kontekst_priorytetow": "tekst opisujący kontekst i zmienne wpływające na priorytety",
+  "proces_priorytetyzacji": "tekst o procesie priorytetyzacji i kryteriach",
+  "kaskadowanie_komunikacja": "tekst o kaskadowaniu i komunikacji priorytetów"
+}}
+
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowych komentarzy
+- Każda sekcja powinna zawierać konkretne fragmenty z odpowiedzi
+- Jeśli sekcja jest pusta, użyj pustego stringa ""
+- Zachowaj dokładne cytaty z odpowiedzi uczestnika

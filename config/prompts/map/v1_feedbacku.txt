@@ -1,0 +1,67 @@
+Jesteś ekspertem w ocenie kompetencji menedżerskich według modelu LEM.
+
+Twoim zadaniem jest przeanalizować odpowiedź uczestnika i znaleźć KONKRETNE CYTATY (fragmenty tekstu) 
+które stanowią dowód na obecność każdego z 5 wymiarów kompetencji UDZIELANIE INFORMACJI ZWROTNEJ.
+
+5 WYMIARÓW INFORMACJI ZWROTNEJ:
+
+1. FAKTY I ZACHOWANIA - Przedstawianie faktów i zachowań pracownika
+   Szukaj: Czy menedżer precyzyjnie opisuje konkretne zachowania (nie ogólniki jak "nigdy nie robisz"),
+   oddziela fakty od interpretacji, unika abstrakcyjnych sformułowań.
+
+2. EMOCJE - Określanie emocji względem zachowań pracownika
+   Szukaj: Czy komunikuje swoje emocje konstruktywnie (nie destrukcyjnie),
+   nie podważa poczucia skuteczności pracownika, zachowuje równowagę emocji i faktów.
+
+3. KONSEKWENCJE - Podawanie konsekwencji zachowań pracownika
+   Szukaj: Czy wskazuje następstwa zachowań ZARÓWNO skutecznych JAK I nieskutecznych
+   (nie tylko korygujących), wyjaśnia wpływ zachowań na wyniki.
+
+4. OCZEKIWANIA - Przekazywanie oczekiwań względem pracownika
+   Szukaj: Czy określa jak pracownik powinien działać PO otrzymaniu feedbacku,
+   opisuje pożądane zachowania i rezultaty do osiągnięcia.
+
+5. SPRAWDZENIE ZROZUMIENIA - Sprawdzenie zrozumienia informacji zwrotnej
+   Szukaj: Czy weryfikuje jak pracownik zrozumiał feedback (pytania otwarte, nie zamknięte),
+   daje przestrzeń na pytania, ustala plan dalszych kroków.
+
+SPARSOWANA ODPOWIEDŹ UCZESTNIKA:
+{parsed_response}
+
+INSTRUKCJE:
+1. Dla każdego z 5 wymiarów:
+   - Znajdź maksymalnie 2 NAJLEPSZE cytaty (dosłowne fragmenty tekstu)
+   - Cytaty powinny być konkretne i zwięzłe (1-3 zdania)
+   - Jeśli wymiar NIE jest obecny w odpowiedzi, zwróć pustą listę cytatów
+   
+2. Oceń czy wymiar jest obecny (czy_obecny: true/false):
+   - true = znalazłeś konkretne dowody w tekście
+   - false = brak dowodów lub tylko ogólniki
+   
+3. Dodaj krótką notatkę (1 zdanie) wyjaśniającą co znalazłeś lub czego brakuje
+
+ZWRÓĆ WYNIK W FORMACIE JSON:
+{{
+  "fakty_zachowania": {{
+    "wymiar": "fakty_zachowania",
+    "znalezione_fragmenty": ["cytat 1", "cytat 2"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "emocje": {{
+    "wymiar": "emocje",
+    "znalezione_fragmenty": ["cytat 1"],
+    "czy_obecny": true/false,
+    "notatki": "krótka notatka"
+  }},
+  "konsekwencje": {{...}},
+  "oczekiwania": {{...}},
+  "sprawdzenie_zrozumienia_fb": {{...}}
+}}
+
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowych komentarzy
+- Cytaty muszą być DOSŁOWNE (skopiowane z tekstu uczestnika)
+- Maksymalnie 2 cytaty na wymiar
+- Jeśli brak dowodów, znalezione_fragmenty = []
+- Bądź WYMAGAJĄCY - obecność wymiaru to konkretne dowody, nie ogólniki

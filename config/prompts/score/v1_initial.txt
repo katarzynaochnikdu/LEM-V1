@@ -1,0 +1,22 @@
+Oceń jakość realizacji wymiaru kompetencji DELEGOWANIE.
+
+WYMIAR: {wymiar_nazwa}
+OPIS: {wymiar_opis}
+
+POZIOMY JAKOŚCI:
+{poziomy}
+
+ZNALEZIONE DOWODY W ODPOWIEDZI:
+{dowody}
+
+ZADANIE:
+Oceń jakość realizacji tego wymiaru w skali 0.0 - 1.0:
+- 0.0 = brak realizacji lub bardzo słaba jakość (poziom 0)
+- 0.25 = minimalna realizacja (poziom 1)
+- 0.5 = podstawowa realizacja (poziom 2)
+- 0.75 = dobra realizacja (poziom 3)
+- 1.0 = doskonała realizacja (poziom 4)
+
+Możesz używać wartości pośrednich (np. 0.6, 0.85).
+
+Zwróć TYLKO liczbę (np. 0.75) bez dodatkowych komentarzy.

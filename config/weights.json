@@ -1,0 +1,39 @@
+{
+  "delegowanie": {
+    "intencja": 0.10,
+    "stan_docelowy": 0.20,
+    "metoda_pomiaru": 0.15,
+    "poziom_odpowiedzialnosci": 0.20,
+    "harmonogram": 0.10,
+    "monitorowanie": 0.10,
+    "sprawdzenie_zrozumienia": 0.15
+  },
+  "podejmowanie_decyzji": {
+    "rezultaty_zakres": 0.20,
+    "kontekst_otoczenie": 0.15,
+    "kryteria_decyzyjne": 0.20,
+    "mapowanie_ryzyk": 0.15,
+    "alternatywne_scenariusze": 0.15,
+    "komunikacja_decyzji": 0.15
+  },
+  "okreslanie_priorytetow": {
+    "cele_priorytety": 0.20,
+    "kontekst_decyzji": 0.15,
+    "tryb_decyzji": 0.15,
+    "kryteria_priorytetyzacji": 0.20,
+    "opcje_metody": 0.15,
+    "kaskadowanie": 0.15
+  },
+  "udzielanie_feedbacku": {
+    "fakty_zachowania": 0.25,
+    "emocje": 0.10,
+    "konsekwencje": 0.20,
+    "oczekiwania": 0.25,
+    "sprawdzenie_zrozumienia_fb": 0.20
+  },
+  "metadata": {
+    "version": "2.0",
+    "last_calibration": null,
+    "description": "Wagi wymiarów dla 4 kompetencji menedżerskich. Suma wag = 1.0 per kompetencja."
+  }
+}

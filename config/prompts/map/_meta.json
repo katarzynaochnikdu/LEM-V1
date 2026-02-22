@@ -1,0 +1,32 @@
+{
+  "module": "map",
+  "description": "Mapowanie odpowiedzi na wymiary kompetencji z ekstrakcją cytatów",
+  "active": {
+    "delegowanie": "v1_initial",
+    "podejmowanie_decyzji": "v1_decyzje",
+    "okreslanie_priorytetow": "v1_priorytety",
+    "udzielanie_feedbacku": "v1_feedbacku"
+  },
+  "versions": [
+    {
+      "name": "v1_initial",
+      "description": "Wersja początkowa - 7 wymiarów delegowania",
+      "created_at": "2026-02-22T18:30:00Z"
+    },
+    {
+      "name": "v1_decyzje",
+      "description": "6 wymiarów podejmowania decyzji",
+      "created_at": "2026-02-22T22:00:00Z"
+    },
+    {
+      "name": "v1_priorytety",
+      "description": "6 wymiarów określania priorytetów",
+      "created_at": "2026-02-22T22:00:00Z"
+    },
+    {
+      "name": "v1_feedbacku",
+      "description": "5 wymiarów udzielania informacji zwrotnej",
+      "created_at": "2026-02-22T22:00:00Z"
+    }
+  ]
+}

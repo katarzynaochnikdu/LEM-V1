@@ -1,0 +1,32 @@
+{
+  "module": "score",
+  "description": "Ocena jakości realizacji wymiarów kompetencji",
+  "active": {
+    "delegowanie": "v1_initial",
+    "podejmowanie_decyzji": "v1_decyzje",
+    "okreslanie_priorytetow": "v1_priorytety",
+    "udzielanie_feedbacku": "v1_feedbacku"
+  },
+  "versions": [
+    {
+      "name": "v1_initial",
+      "description": "Wersja początkowa - generyczny scoring",
+      "created_at": "2026-02-22T18:30:00Z"
+    },
+    {
+      "name": "v1_decyzje",
+      "description": "Scoring podejmowania decyzji",
+      "created_at": "2026-02-22T22:00:00Z"
+    },
+    {
+      "name": "v1_priorytety",
+      "description": "Scoring określania priorytetów",
+      "created_at": "2026-02-22T22:00:00Z"
+    },
+    {
+      "name": "v1_feedbacku",
+      "description": "Scoring udzielania informacji zwrotnej",
+      "created_at": "2026-02-22T22:00:00Z"
+    }
+  ]
+}
