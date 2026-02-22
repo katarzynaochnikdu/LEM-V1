@@ -8,8 +8,7 @@ import os
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional
 from dotenv import load_dotenv
@@ -48,6 +47,7 @@ from app.prompt_manager import (
     activate_version as pm_activate_version,
     get_active_versions as pm_get_active_versions,
 )
+from app.llm_client import get_llm_runtime, set_llm_runtime
 
 load_dotenv()
 
@@ -59,25 +59,29 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "http://localhost:8080,http://127.0.0.1:8080").split(",")
+        if origin.strip()
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-PUBLIC_PATHS = {"/", "/health", "/login", "/api/auth/login", "/api/auth/logout"}
+PUBLIC_API_PATHS = {"/health", "/api/health", "/api/auth/login", "/api/auth/logout"}
 
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
-    if path in PUBLIC_PATHS or path.startswith("/static/"):
+    if not path.startswith("/api/"):
+        return await call_next(request)
+    if path in PUBLIC_API_PATHS:
         return await call_next(request)
     token = request.cookies.get(SESSION_COOKIE)
     if not token or not get_session(token):
-        if path.startswith("/api/"):
-            return JSONResponse(status_code=401, content={"detail": "Nie zalogowano"})
-        return RedirectResponse(url="/login", status_code=302)
+        return JSONResponse(status_code=401, content={"detail": "Nie zalogowano"})
     request.state.user = get_session(token)
     return await call_next(request)
 
@@ -102,11 +106,14 @@ async def api_login(req: LoginRequest, response: Response):
     if not role:
         raise HTTPException(status_code=401, detail="Nieprawidłowy login lub hasło")
     token = create_session(req.username, role)
+    cookie_secure = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
+    cookie_samesite = os.getenv("SESSION_COOKIE_SAMESITE", "lax")
     response.set_cookie(
         key=SESSION_COOKIE,
         value=token,
         httponly=True,
-        samesite="lax",
+        secure=cookie_secure,
+        samesite=cookie_samesite,
         max_age=60 * 60 * 12,
         path="/",
     )
@@ -135,6 +142,12 @@ class AddUserRequest(BaseModel):
     role: str = "user"
 
 
+class LlmConfigRequest(BaseModel):
+    provider: str = Field(..., description="local | openai")
+    model: str = Field(..., min_length=1)
+    openai_api_key: Optional[str] = None
+
+
 @app.post("/api/auth/users")
 async def api_add_user(req: AddUserRequest, request: Request):
     user = getattr(request.state, "user", None)
@@ -152,6 +165,26 @@ async def api_list_users(request: Request):
     if not user or user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Tylko admin")
     return list_users()
+
+
+@app.get("/api/llm/config")
+async def get_llm_config(request: Request):
+    return get_llm_runtime()
+
+
+@app.put("/api/llm/config")
+async def update_llm_config(req: LlmConfigRequest, request: Request):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Tylko admin może zmieniać konfigurację LLM")
+    try:
+        return set_llm_runtime(
+            provider=req.provider.strip().lower(),
+            model=req.model.strip(),
+            openai_api_key=req.openai_api_key,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ---------------------------------------------------------------------------
@@ -174,8 +207,8 @@ def get_modules(competency: str = "delegowanie"):
 # HEALTH
 # ---------------------------------------------------------------------------
 
-@app.get("/", response_model=HealthResponse)
-async def root():
+@app.get("/api/health", response_model=HealthResponse)
+async def api_health():
     return HealthResponse(status="healthy", version="2.0.0")
 
 
@@ -294,6 +327,7 @@ async def diagnostic_parse(request: DiagnosticParseRequest):
     """Krok 1: Strukturyzacja odpowiedzi na sekcje"""
     try:
         parser, _, _, _ = get_modules(request.competency)
+        llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("parse", competency=request.competency)
         prompt_sent = parser.prompt_template.format(response_text=request.response_text)
         parsed = await parser.parse(request.response_text)
@@ -311,6 +345,7 @@ async def diagnostic_parse(request: DiagnosticParseRequest):
                 "active_version": active_prompt.get("version"),
                 "active_template": active_prompt.get("content"),
             },
+            "_llm": llm_runtime,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -322,6 +357,7 @@ async def diagnostic_map(request: dict):
     try:
         competency = request.get("competency", "delegowanie")
         _, mapper, _, _ = get_modules(competency)
+        llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("map", competency=competency)
 
         sections = request.get("sections", {})
@@ -363,6 +399,7 @@ async def diagnostic_map(request: dict):
                 "active_version": active_prompt.get("version"),
                 "active_template": active_prompt.get("content"),
             },
+            "_llm": llm_runtime,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -374,6 +411,7 @@ async def diagnostic_score(request: dict):
     try:
         competency = request.get("competency", "delegowanie")
         _, _, scorer, _ = get_modules(competency)
+        llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("score", competency=competency)
         wymiary = get_wymiary_for_competency(competency)
 
@@ -448,6 +486,7 @@ async def diagnostic_score(request: dict):
                 "active_version": active_prompt.get("version"),
                 "active_template": active_prompt.get("content"),
             },
+            "_llm": llm_runtime,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -459,6 +498,7 @@ async def diagnostic_feedback(request: dict):
     try:
         competency = request.get("competency", "delegowanie")
         _, _, _, fg = get_modules(competency)
+        llm_runtime = get_llm_runtime()
         active_prompt = pm_get_prompt("feedback", competency=competency)
 
         pr_data = request.get("parsed_response", {})
@@ -523,6 +563,7 @@ async def diagnostic_feedback(request: dict):
                 "active_version": active_prompt.get("version"),
                 "active_template": active_prompt.get("content"),
             },
+            "_llm": llm_runtime,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -917,39 +958,44 @@ async def update_weights(competency: str, request: Request):
 
 
 # ---------------------------------------------------------------------------
-# STATIC FILES
+# FRONTEND SPA
 # ---------------------------------------------------------------------------
 
-static_dir = Path(__file__).parent / "static"
+FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 
-@app.get("/login")
-async def serve_login():
-    return FileResponse(str(static_dir / "login.html"))
+def _resolve_frontend_file(requested_path: str) -> Optional[Path]:
+    if not FRONTEND_DIST_DIR.exists():
+        return None
+    candidate = (FRONTEND_DIST_DIR / requested_path).resolve()
+    try:
+        candidate.relative_to(FRONTEND_DIST_DIR.resolve())
+    except ValueError:
+        return None
+    if candidate.is_file():
+        return candidate
+    return None
 
 
-@app.get("/ui")
-async def serve_ui():
-    return FileResponse(str(static_dir / "index.html"))
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    if full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Nie znaleziono endpointu API")
 
+    # Serve real frontend assets first (js/css/images/etc), then SPA shell.
+    requested = full_path.lstrip("/")
+    if requested:
+        asset_file = _resolve_frontend_file(requested)
+        if asset_file:
+            return FileResponse(str(asset_file))
 
-@app.get("/prompts")
-async def serve_prompts():
-    return FileResponse(str(static_dir / "prompts.html"))
-
-
-@app.get("/compare")
-async def serve_compare():
-    return FileResponse(str(static_dir / "compare.html"))
-
-
-@app.get("/calibration")
-async def serve_calibration():
-    return FileResponse(str(static_dir / "calibration.html"))
-
-
-if static_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    index_file = _resolve_frontend_file("index.html")
+    if not index_file:
+        raise HTTPException(
+            status_code=503,
+            detail="Frontend build not found. Build React app in ../frontend (npm run build).",
+        )
+    return FileResponse(str(index_file))
 
 
 if __name__ == "__main__":

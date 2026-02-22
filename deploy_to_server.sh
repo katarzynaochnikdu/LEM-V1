@@ -39,14 +39,14 @@ log_info "Krok 1/8: Aktualizacja systemu..."
 sudo apt update -qq
 
 # 2. Instalacja wymaganych pakietów
-log_info "Krok 2/8: Instalacja wymaganych pakietów..."
-sudo apt install -y python3.11 python3.11-venv python3-pip nginx > /dev/null 2>&1 || {
+log_info "Krok 2/9: Instalacja wymaganych pakietów..."
+sudo apt install -y python3.11 python3.11-venv python3-pip nginx nodejs npm > /dev/null 2>&1 || {
     log_warn "Python 3.11 nie jest dostępny, próbuję python3..."
-    sudo apt install -y python3 python3-venv python3-pip nginx
+    sudo apt install -y python3 python3-venv python3-pip nginx nodejs npm
 }
 
 # 3. Utworzenie środowiska wirtualnego
-log_info "Krok 3/8: Tworzenie środowiska wirtualnego..."
+log_info "Krok 3/9: Tworzenie środowiska wirtualnego..."
 if [ -d "venv" ]; then
     log_warn "Środowisko wirtualne już istnieje, pomijam..."
 else
@@ -54,14 +54,14 @@ else
 fi
 
 # 4. Aktywacja i instalacja zależności
-log_info "Krok 4/8: Instalacja zależności Python..."
+log_info "Krok 4/9: Instalacja zależności Python..."
 source venv/bin/activate
 pip install --upgrade pip -q
 pip install -r requirements.txt -q
 pip install gunicorn -q
 
 # 5. Konfiguracja .env
-log_info "Krok 5/8: Konfiguracja zmiennych środowiskowych..."
+log_info "Krok 5/9: Konfiguracja zmiennych środowiskowych..."
 if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then
         cp .env.example .env
@@ -86,18 +86,39 @@ if ! grep -q "OPENAI_API_KEY=sk-" .env; then
 fi
 
 # 6. Test aplikacji
-log_info "Krok 6/8: Test aplikacji..."
+log_info "Krok 6/9: Build frontendu React..."
+FRONTEND_DIR="$(cd .. && pwd)/frontend"
+if [ ! -d "$FRONTEND_DIR" ]; then
+    log_error "Nie znaleziono katalogu frontend obok LEM V1: $FRONTEND_DIR"
+    exit 1
+fi
+
+pushd "$FRONTEND_DIR" > /dev/null
+if [ -f "package-lock.json" ]; then
+    npm ci
+else
+    npm install
+fi
+npm run build
+popd > /dev/null
+
+if [ ! -f "$FRONTEND_DIR/dist/index.html" ]; then
+    log_error "Build frontendu nie utworzył pliku dist/index.html"
+    exit 1
+fi
+
+log_info "Krok 7/9: Test aplikacji..."
 python -c "from app.main import app; print('Import OK')" || {
     log_error "Nie udało się zaimportować aplikacji!"
     exit 1
 }
 
-# 7. Utworzenie katalogu na logi
-log_info "Krok 7/8: Tworzenie katalogu na logi..."
+# 8. Utworzenie katalogu na logi
+log_info "Krok 8/9: Tworzenie katalogu na logi..."
 mkdir -p logs
 
-# 8. Konfiguracja Gunicorn
-log_info "Krok 8/8: Konfiguracja Gunicorn..."
+# 9. Konfiguracja Gunicorn
+log_info "Krok 9/9: Konfiguracja Gunicorn..."
 cat > gunicorn_config.py << 'EOF'
 import multiprocessing
 import os
