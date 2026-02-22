@@ -37,6 +37,7 @@ from app.rubric import (
 from app.auth import (
     ensure_admin_exists, verify_user, create_session,
     get_session, delete_session, add_user, list_users,
+    delete_user, change_password, change_role,
     SESSION_COOKIE,
 )
 from app.prompt_manager import (
@@ -170,6 +171,48 @@ async def api_list_users(request: Request):
     if not user or user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Tylko admin")
     return list_users()
+
+
+@app.delete("/api/auth/users/{username}")
+async def api_delete_user(username: str, request: Request):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Tylko admin może usuwać użytkowników")
+    if username == user["username"]:
+        raise HTTPException(status_code=400, detail="Nie możesz usunąć samego siebie")
+    if not delete_user(username):
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    return {"ok": True}
+
+
+class ChangePasswordRequest(BaseModel):
+    new_password: str = Field(..., min_length=4)
+
+
+@app.put("/api/auth/users/{username}/password")
+async def api_change_password(username: str, req: ChangePasswordRequest, request: Request):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Tylko admin może zmieniać hasła")
+    if not change_password(username, req.new_password):
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    return {"ok": True}
+
+
+class ChangeRoleRequest(BaseModel):
+    role: str = Field(..., pattern="^(admin|user)$")
+
+
+@app.put("/api/auth/users/{username}/role")
+async def api_change_role(username: str, req: ChangeRoleRequest, request: Request):
+    user = getattr(request.state, "user", None)
+    if not user or user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Tylko admin może zmieniać role")
+    if username == user["username"]:
+        raise HTTPException(status_code=400, detail="Nie możesz zmienić własnej roli")
+    if not change_role(username, req.role):
+        raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
+    return {"ok": True}
 
 
 @app.get("/api/llm/config")

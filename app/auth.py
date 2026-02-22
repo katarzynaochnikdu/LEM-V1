@@ -103,3 +103,32 @@ def list_users() -> list[dict]:
         {"username": u, "role": d.get("role", "user")}
         for u, d in users.items()
     ]
+
+
+def delete_user(username: str) -> bool:
+    users = _load_users()
+    if username not in users:
+        return False
+    del users[username]
+    _save_users(users)
+    return True
+
+
+def change_password(username: str, new_password: str) -> bool:
+    users = _load_users()
+    if username not in users:
+        return False
+    salt = secrets.token_hex(16)
+    users[username]["password_hash"] = _hash_password(new_password, salt)
+    users[username]["salt"] = salt
+    _save_users(users)
+    return True
+
+
+def change_role(username: str, new_role: str) -> bool:
+    users = _load_users()
+    if username not in users:
+        return False
+    users[username]["role"] = new_role
+    _save_users(users)
+    return True
