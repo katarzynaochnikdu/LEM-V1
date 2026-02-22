@@ -516,6 +516,8 @@ async def diagnostic_parse(request: DiagnosticParseRequest, http_request: Reques
             "_llm": llm_runtime,
         }
     except Exception as e:
+        import traceback, logging
+        logging.getLogger("uvicorn.error").error("diagnostic_parse FAILED:\n%s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
