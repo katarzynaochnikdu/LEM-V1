@@ -1237,6 +1237,26 @@ COMPETENCY_REGISTRY = {
     },
 }
 
+COMPETENCY_ALIASES = {
+    "decyzje": "podejmowanie_decyzji",
+    "priorytety": "okreslanie_priorytetow",
+    "feedback": "udzielanie_feedbacku",
+}
+
+COMPETENCY_SHORT_NAMES = {v: k for k, v in COMPETENCY_ALIASES.items()}
+COMPETENCY_SHORT_NAMES["delegowanie"] = "delegowanie"
+
+
+def resolve_competency(competency: str) -> str:
+    """Tłumaczy alias (np. 'decyzje') na pełną nazwę backendu ('podejmowanie_decyzji').
+    Jeśli już pełna — zwraca bez zmian."""
+    return COMPETENCY_ALIASES.get(competency, competency)
+
+
+def competency_short_name(competency: str) -> str:
+    """Zwraca krótki ID kompetencji (używany przez frontend)."""
+    return COMPETENCY_SHORT_NAMES.get(competency, competency)
+
 
 def get_available_competencies() -> list[str]:
     """Zwraca listę dostępnych kompetencji."""
@@ -1245,6 +1265,7 @@ def get_available_competencies() -> list[str]:
 
 def get_competency_info(competency: str) -> dict:
     """Zwraca pełne info o kompetencji (nazwa, wymiary, algorytm)."""
+    competency = resolve_competency(competency)
     if competency not in COMPETENCY_REGISTRY:
         raise ValueError(f"Nieznana kompetencja: {competency}. Dostępne: {get_available_competencies()}")
     return COMPETENCY_REGISTRY[competency]

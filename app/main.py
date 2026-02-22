@@ -32,6 +32,8 @@ from app.rubric import (
     get_available_competencies,
     get_competency_info,
     get_wymiary_for_competency,
+    resolve_competency,
+    competency_short_name,
     COMPETENCY_REGISTRY,
 )
 from app.auth import (
@@ -318,6 +320,7 @@ async def get_estimate_cost(
 
 def get_modules(competency: str = "delegowanie"):
     """Factory: nowe instancje modułów pipeline dla danej kompetencji."""
+    competency = resolve_competency(competency)
     if competency not in get_available_competencies():
         raise ValueError(f"Nieznana kompetencja: {competency}. Dostępne: {get_available_competencies()}")
     return (

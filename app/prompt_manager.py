@@ -9,6 +9,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from app.rubric import resolve_competency, competency_short_name
+
 PROMPTS_DIR = Path(__file__).parent.parent / "config" / "prompts"
 MODULES = ["parse", "map", "score", "feedback"]
 DEFAULT_COMPETENCY = "delegowanie"
@@ -49,12 +51,14 @@ def _save_meta(module: str, meta: dict) -> None:
 def _resolve_active_version(meta: dict, competency: str = DEFAULT_COMPETENCY) -> Optional[str]:
     """Zwraca aktywną wersję promptu dla danej kompetencji.
     Fallback: jeśli brak wersji per kompetencja, zwraca domyślną (delegowanie).
+    Akceptuje zarówno krótkie ('decyzje') jak i pełne ('podejmowanie_decyzji') nazwy.
     """
     active = meta.get("active", {})
     if isinstance(active, str):
         return active
     if isinstance(active, dict):
-        return active.get(competency) or active.get(DEFAULT_COMPETENCY)
+        full = resolve_competency(competency)
+        return active.get(competency) or active.get(full) or active.get(DEFAULT_COMPETENCY)
     return None
 
 
@@ -73,7 +77,9 @@ def list_modules() -> list[dict]:
 
 
 def list_versions(module: str) -> list[dict]:
-    """Zwraca listę wersji dla danego modułu."""
+    """Zwraca listę wersji dla danego modułu.
+    active_for zawiera krótkie nazwy kompetencji (zgodne z frontendem).
+    """
     meta = _load_meta(module)
     active = meta.get("active", {})
     versions = []
@@ -82,7 +88,7 @@ def list_versions(module: str) -> list[dict]:
         if isinstance(active, dict):
             for comp, ver in active.items():
                 if ver == v["name"]:
-                    is_active_for.append(comp)
+                    is_active_for.append(competency_short_name(comp))
         elif isinstance(active, str) and active == v["name"]:
             is_active_for.append(DEFAULT_COMPETENCY)
 
@@ -95,7 +101,8 @@ def list_versions(module: str) -> list[dict]:
 
 
 def get_prompt(module: str, version: Optional[str] = None, competency: str = DEFAULT_COMPETENCY) -> dict:
-    """Pobiera treść promptu. Jeśli version=None, zwraca aktywną wersję dla danej kompetencji."""
+    """Pobiera treść promptu. Jeśli version=None, zwraca aktywną wersję dla danej kompetencji.
+    Akceptuje krótkie i pełne nazwy kompetencji."""
     meta = _load_meta(module)
 
     if version is None:
@@ -119,7 +126,7 @@ def get_prompt(module: str, version: Optional[str] = None, competency: str = DEF
     return {
         "module": module,
         "version": version,
-        "competency": competency,
+        "competency": competency_short_name(resolve_competency(competency)),
         "content": content,
         "description": version_info.get("description", ""),
         "created_at": version_info.get("created_at"),
@@ -140,7 +147,8 @@ def save_prompt(
     activate: bool = False,
     competency: str = DEFAULT_COMPETENCY,
 ) -> dict:
-    """Zapisuje nową wersję promptu."""
+    """Zapisuje nową wersję promptu. Akceptuje krótkie i pełne nazwy kompetencji."""
+    full_comp = resolve_competency(competency)
     module_dir = _get_module_dir(module)
     module_dir.mkdir(parents=True, exist_ok=True)
 
@@ -174,22 +182,24 @@ def save_prompt(
     if not isinstance(meta.get("active"), dict):
         meta["active"] = {}
 
-    if activate or not meta["active"].get(competency):
-        meta["active"][competency] = version_name
+    if activate or not meta["active"].get(full_comp):
+        meta["active"][full_comp] = version_name
 
     _save_meta(module, meta)
 
     return {
         "module": module,
         "version": version_name,
-        "competency": competency,
+        "competency": competency_short_name(full_comp),
         "is_new": is_new,
-        "activated": activate or meta["active"].get(competency) == version_name,
+        "activated": activate or meta["active"].get(full_comp) == version_name,
     }
 
 
 def activate_version(module: str, version_name: str, competency: str = DEFAULT_COMPETENCY) -> dict:
-    """Ustawia wersję jako aktywną dla danej kompetencji."""
+    """Ustawia wersję jako aktywną dla danej kompetencji.
+    Akceptuje krótkie i pełne nazwy kompetencji."""
+    full_comp = resolve_competency(competency)
     meta = _load_meta(module)
 
     version_exists = any(
@@ -206,27 +216,29 @@ def activate_version(module: str, version_name: str, competency: str = DEFAULT_C
     if not isinstance(meta.get("active"), dict):
         meta["active"] = {}
 
-    old_active = meta["active"].get(competency)
-    meta["active"][competency] = version_name
+    old_active = meta["active"].get(full_comp)
+    meta["active"][full_comp] = version_name
     _save_meta(module, meta)
 
     return {
         "module": module,
-        "competency": competency,
+        "competency": competency_short_name(full_comp),
         "old_active": old_active,
         "new_active": version_name,
     }
 
 
 def get_active_versions(competency: str = None) -> dict:
-    """Zwraca aktywne wersje. Jeśli competency podane, tylko dla tej kompetencji."""
+    """Zwraca aktywne wersje. Jeśli competency podane, tylko dla tej kompetencji.
+    Akceptuje krótkie i pełne nazwy kompetencji."""
+    full_comp = resolve_competency(competency) if competency else None
     result = {}
     for module in MODULES:
         meta = _load_meta(module)
         active = meta.get("active", {})
-        if competency:
+        if full_comp:
             if isinstance(active, dict):
-                result[module] = active.get(competency) or active.get(DEFAULT_COMPETENCY)
+                result[module] = active.get(full_comp) or active.get(competency) or active.get(DEFAULT_COMPETENCY)
             else:
                 result[module] = active
         else:
