@@ -6,7 +6,7 @@ Generuje spersonalizowany, zróżnicowany feedback rozwojowy (dynamicznie per ko
 import json
 import os
 from pathlib import Path
-from app.llm_client import get_llm_client, get_model_name
+from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.json_utils import extract_json_from_text
 from app.models import ScoringResult, Feedback
 from app.rubric import get_wymiary_for_competency
@@ -48,8 +48,8 @@ class FeedbackGenerator:
                         "content": prompt
                     }
                 ],
-                temperature=0.7,
-                max_tokens=3000
+                **temperature_param(0.7),
+                **max_tokens_param(3000)
             )
 
             result_text = response.choices[0].message.content

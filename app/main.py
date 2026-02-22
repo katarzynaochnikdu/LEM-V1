@@ -961,7 +961,7 @@ async def update_weights(competency: str, request: Request):
 # FRONTEND SPA
 # ---------------------------------------------------------------------------
 
-FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+FRONTEND_DIST_DIR = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
 
 def _resolve_frontend_file(requested_path: str) -> Optional[Path]:

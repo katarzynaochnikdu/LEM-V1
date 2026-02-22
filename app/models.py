@@ -98,8 +98,8 @@ class ScoringResult(BaseModel):
 
 class Feedback(BaseModel):
     """Wygenerowany feedback"""
-    summary: str = Field(..., max_length=500, description="Uzasadnienie oceny (2-3 zdania)")
-    recommendation: str = Field(..., max_length=200, description="Konkretna rekomendacja rozwojowa")
+    summary: str = Field(..., max_length=1000, description="Uzasadnienie oceny (2-3 zdania)")
+    recommendation: str = Field(..., max_length=1000, description="Konkretna rekomendacja rozwojowa")
     mocne_strony: List[str] = Field(default_factory=list, description="Lista mocnych stron (z cytatami)")
     obszary_rozwoju: List[str] = Field(default_factory=list, description="Lista obszarów do rozwoju")
 

@@ -6,7 +6,7 @@ Rozbija narracyjną odpowiedź na logiczne sekcje (dynamicznie per kompetencja)
 import json
 import os
 from pathlib import Path
-from app.llm_client import get_llm_client, get_model_name
+from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.json_utils import extract_json_from_text
 from app.models import ParsedResponse
 from app.prompt_manager import get_active_prompt_content
@@ -85,8 +85,8 @@ class ResponseParser:
                         "content": prompt
                     }
                 ],
-                temperature=0.1,
-                max_tokens=2000
+                **temperature_param(0.1),
+                **max_tokens_param(2000)
             )
 
             result_text = response.choices[0].message.content

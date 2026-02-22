@@ -7,7 +7,7 @@ import json
 import os
 import re
 from pathlib import Path
-from app.llm_client import get_llm_client, get_model_name
+from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.models import MappedResponse, ScoringResult, DimensionScore
 from app.rubric import get_wymiary_for_competency, get_poziom_kompetencji
 from app.prompt_manager import get_active_prompt_content
@@ -95,8 +95,8 @@ class CompetencyScorer:
                         "content": prompt
                     }
                 ],
-                temperature=0.1,
-                max_tokens=10
+                **temperature_param(0.1),
+                **max_tokens_param(10)
             )
 
             score_text = response.choices[0].message.content.strip()
