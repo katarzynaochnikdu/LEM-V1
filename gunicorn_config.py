@@ -3,7 +3,7 @@ import os
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
-bind = "0.0.0.0:8001"
+bind = "0.0.0.0:8000"
 workers = max(2, multiprocessing.cpu_count())
 worker_class = "uvicorn.workers.UvicornWorker"
 timeout = 120
