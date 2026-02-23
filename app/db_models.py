@@ -517,6 +517,29 @@ async def compare_assessments(a_ref: str, b_ref: str) -> Optional[dict[str, Any]
     }
 
 
+async def delete_assessment(assessment_id: int) -> bool:
+    async with get_connection() as conn:
+        row = await _fetchone(conn, "SELECT id FROM assessments WHERE id = ?", (assessment_id,))
+        if not row:
+            return False
+
+        await conn.execute("DELETE FROM dimension_scores WHERE assessment_id = ?", (assessment_id,))
+        await conn.execute("DELETE FROM evidence WHERE assessment_id = ?", (assessment_id,))
+        await conn.execute("DELETE FROM feedback WHERE assessment_id = ?", (assessment_id,))
+        await conn.execute("DELETE FROM pipeline_steps WHERE assessment_id = ?", (assessment_id,))
+        await conn.execute("DELETE FROM assessments WHERE id = ?", (assessment_id,))
+        await conn.commit()
+
+    return True
+
+
+async def delete_assessment_by_ref(assessment_ref: str) -> bool:
+    assessment_id = _parse_session_ref(assessment_ref)
+    if assessment_id is None:
+        return False
+    return await delete_assessment(assessment_id)
+
+
 async def get_assessment_stats() -> dict[str, Any]:
     async with get_connection() as conn:
         total_row = await _fetchone(conn, "SELECT COUNT(*) AS count FROM assessments")

@@ -70,6 +70,7 @@ from app.db_models import (
     get_assessment_by_id as db_get_assessment_by_id,
     compare_assessments as db_compare_assessments,
     get_assessment_stats as db_get_assessment_stats,
+    delete_assessment_by_ref as db_delete_assessment_by_ref,
     save_run as db_save_run,
     list_runs as db_list_runs,
     get_run_by_ref as db_get_run_by_ref,
@@ -891,6 +892,15 @@ async def get_session_file(filename: str, request: Request):
     if not session_data:
         raise HTTPException(status_code=404, detail="Sesja nie znaleziona")
     return session_data
+
+
+@app.delete("/api/sessions/{filename}")
+async def delete_session(filename: str, request: Request):
+    """Usuwa konkretną sesję diagnostyczną (jedno uruchomienie) z bazy SQLite."""
+    deleted = await db_delete_assessment_by_ref(filename)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Sesja nie znaleziona")
+    return {"ok": True, "filename": filename}
 
 
 @app.get("/api/db/assessments")
