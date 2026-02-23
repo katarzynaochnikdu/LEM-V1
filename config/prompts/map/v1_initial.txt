@@ -1,8 +1,3 @@
-Jesteś ekspertem w ocenie kompetencji menedżerskich według modelu LEM.
-
-Twoim zadaniem jest przeanalizować odpowiedź uczestnika i znaleźć KONKRETNE CYTATY (fragmenty tekstu) 
-które stanowią dowód na obecność każdego z 7 wymiarów kompetencji DELEGOWANIE.
-
 7 WYMIARÓW DELEGOWANIA:
 
 1. INTENCJA - Nadawanie intencji biznesowej

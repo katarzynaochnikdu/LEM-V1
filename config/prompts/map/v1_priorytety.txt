@@ -1,8 +1,3 @@
-Jesteś ekspertem w ocenie kompetencji menedżerskich według modelu LEM.
-
-Twoim zadaniem jest przeanalizować odpowiedź uczestnika i znaleźć KONKRETNE CYTATY (fragmenty tekstu) 
-które stanowią dowód na obecność każdego z 6 wymiarów kompetencji OKREŚLANIE CELÓW I PRIORYTETÓW.
-
 6 WYMIARÓW OKREŚLANIA PRIORYTETÓW:
 
 1. CELE I PRIORYTETY - Definiowanie głównych celów i priorytetów

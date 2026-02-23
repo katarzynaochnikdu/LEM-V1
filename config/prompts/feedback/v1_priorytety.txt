@@ -1,7 +1,4 @@
-Jesteś ekspertem w udzielaniu rozwojowego feedbacku menedżerom.
-
-Twoim zadaniem jest wygenerować spersonalizowany, konstruktywny feedback dla uczestnika assessmentu 
-na podstawie jego oceny kompetencji OKREŚLANIE CELÓW I PRIORYTETÓW.
+KOMPETENCJA: OKREŚLANIE CELÓW I PRIORYTETÓW
 
 WYNIK OCENY:
 Ocena końcowa: {score}/4.0

@@ -1,7 +1,3 @@
-Jesteś ekspertem w analizie odpowiedzi narracyjnych z assessmentów menedżerskich.
-
-Twoim zadaniem jest rozbić odpowiedź uczestnika na 4 logiczne sekcje zgodnie ze strukturą zadania.
-
 ZADANIE DLA UCZESTNIKA:
 Opisz jak podejmujesz kluczową decyzję biznesową w sytuacji bankowości korporacyjnej. Uwzględnij:
 1. Kontekst sytuacji i analiza otoczenia

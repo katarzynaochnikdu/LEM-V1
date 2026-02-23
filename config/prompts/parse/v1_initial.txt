@@ -1,7 +1,3 @@
-Jesteś ekspertem w analizie odpowiedzi narracyjnych z assessmentów menedżerskich.
-
-Twoim zadaniem jest rozbić odpowiedź uczestnika na 4 logiczne sekcje zgodnie ze strukturą zadania.
-
 ZADANIE DLA UCZESTNIKA:
 Opisz jak przeprowadzasz rozmowę delegującą z pracownikiem w sytuacji wcześniej ustalonych priorytetów biznesowych. Uwzględnij:
 1. Przygotowanie do rozmowy
