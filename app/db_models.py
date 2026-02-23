@@ -84,7 +84,9 @@ async def save_assessment(
         if usage:
             total_tokens += int(usage.get("total_tokens", 0))
         cost = step_data.get("_cost")
-        if isinstance(cost, (int, float)):
+        if isinstance(cost, dict):
+            total_cost_usd += float(cost.get("total", 0.0))
+        elif isinstance(cost, (int, float)):
             total_cost_usd += float(cost)
 
     created_at = _now_iso()
@@ -443,6 +445,22 @@ async def get_assessment_by_id(assessment_id: int) -> Optional[dict[str, Any]]:
             }
     steps["prompt_versions"] = _loads(assessment["prompt_versions"], {})
 
+    # Przelicz tokeny i koszty z steps, jeśli nie ma w kolumnach
+    total_tokens = assessment["total_tokens"] or 0
+    total_cost_usd = assessment["total_cost_usd"] or 0.0
+    
+    if total_tokens == 0 or total_cost_usd == 0.0:
+        for step_name in ("parse", "map", "score", "feedback"):
+            step_data = steps.get(step_name, {})
+            usage = step_data.get("_usage")
+            if usage:
+                total_tokens += int(usage.get("total_tokens", 0))
+            cost = step_data.get("_cost")
+            if isinstance(cost, dict):
+                total_cost_usd += float(cost.get("total", 0.0))
+            elif isinstance(cost, (int, float)):
+                total_cost_usd += float(cost)
+
     feedback_data = dict(feedback_row) if feedback_row else {}
     return {
         "id": assessment["id"],
@@ -456,8 +474,8 @@ async def get_assessment_by_id(assessment_id: int) -> Optional[dict[str, Any]]:
         "level": assessment["level"],
         "llm_model": assessment["llm_model"],
         "prompt_versions": _loads(assessment["prompt_versions"], {}),
-        "total_tokens": assessment["total_tokens"] or 0,
-        "total_cost_usd": assessment["total_cost_usd"] or 0.0,
+        "total_tokens": total_tokens,
+        "total_cost_usd": total_cost_usd,
         "usage_per_step": usage_per_step,
         "steps": steps,
         "evidence": evidence_map,
@@ -490,23 +508,64 @@ def _extract_session_compare_data(session: dict[str, Any]) -> dict[str, Any]:
     parse_data = steps.get("parse", {})
     map_data = steps.get("map", {})
 
+    # Pobierz tokeny i koszty - jeśli są 0, przelicz z steps
+    total_tokens = session.get("total_tokens", 0)
+    total_cost_usd = session.get("total_cost_usd", 0.0)
+    
+    if total_tokens == 0 or total_cost_usd == 0.0:
+        # Przelicz z kroków pipeline
+        for step_name in ("parse", "map", "score", "feedback"):
+            step_data = steps.get(step_name, {})
+            usage = step_data.get("_usage")
+            if usage:
+                total_tokens += int(usage.get("total_tokens", 0))
+            cost = step_data.get("_cost")
+            if isinstance(cost, dict):
+                total_cost_usd += float(cost.get("total", 0.0))
+            elif isinstance(cost, (int, float)):
+                total_cost_usd += float(cost)
+
     score = score_data.get("ocena", score_data.get("ocena_delegowanie"))
     return {
         "participant_id": session.get("participant_id"),
+        "run_name": session.get("run_name", ""),
         "competency": session.get("competency", "delegowanie"),
         "saved_at": session.get("saved_at"),
         "saved_by": session.get("saved_by"),
+        "llm_model": session.get("llm_model"),
+        "total_tokens": total_tokens,
+        "total_cost_usd": total_cost_usd,
         "ocena": score,
         "poziom": score_data.get("poziom"),
         "dimension_scores": {
             key: value.get("ocena") for key, value in score_data.get("dimension_scores", {}).items()
         },
+        "dimension_scores_detailed": score_data.get("dimension_scores", {}),
         "prompt_versions": steps.get("prompt_versions", {}),
         "prompts": {
             "parse": parse_data.get("_prompt", {}),
             "map": map_data.get("_prompt", {}),
             "score": score_data.get("_prompt", {}),
             "feedback": feedback_data.get("_prompt", {}),
+        },
+        "outputs": {
+            "parse": {
+                "sections": parse_data.get("sections", {}),
+            },
+            "map": {
+                "evidence": map_data.get("evidence", {}),
+            },
+            "score": {
+                "ocena": score,
+                "poziom": score_data.get("poziom"),
+                "dimension_scores": score_data.get("dimension_scores", {}),
+            },
+            "feedback": {
+                "summary": feedback_data.get("summary"),
+                "recommendation": feedback_data.get("recommendation"),
+                "mocne_strony": feedback_data.get("mocne_strony", []),
+                "obszary_rozwoju": feedback_data.get("obszary_rozwoju", []),
+            },
         },
         "feedback": {
             "summary": feedback_data.get("summary"),
