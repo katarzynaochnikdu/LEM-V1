@@ -27,6 +27,7 @@ CREATE_TABLES_SQL = """
 CREATE TABLE IF NOT EXISTS assessments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     participant_id TEXT NOT NULL,
+    run_name TEXT DEFAULT '',
     competency TEXT NOT NULL,
     response_text TEXT NOT NULL,
     score REAL,
@@ -116,6 +117,7 @@ async def get_connection():
 MIGRATIONS = [
     "ALTER TABLE assessments ADD COLUMN total_tokens INTEGER DEFAULT 0",
     "ALTER TABLE assessments ADD COLUMN total_cost_usd REAL DEFAULT 0.0",
+    "ALTER TABLE assessments ADD COLUMN run_name TEXT DEFAULT ''",
 ]
 
 

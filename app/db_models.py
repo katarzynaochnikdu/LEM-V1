@@ -57,6 +57,7 @@ async def save_assessment(
     steps: dict[str, Any],
     created_by: str,
     prompt_versions: Optional[dict[str, Any]] = None,
+    run_name: str = "",
 ) -> dict[str, Any]:
     score, level = _extract_score_data(steps)
     parse_data = steps.get("parse", {})
@@ -91,12 +92,13 @@ async def save_assessment(
         cursor = await conn.execute(
             """
             INSERT INTO assessments (
-                participant_id, competency, response_text, score, level, created_at, created_by,
+                participant_id, run_name, competency, response_text, score, level, created_at, created_by,
                 llm_model, prompt_versions, total_tokens, total_cost_usd
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 participant_id,
+                run_name,
                 competency,
                 response_text,
                 score,
@@ -318,7 +320,7 @@ async def list_assessments(
     limit: int = 200,
 ) -> list[dict[str, Any]]:
     query = """
-        SELECT id, participant_id, competency, response_text, score, level, created_at, created_by, llm_model,
+        SELECT id, participant_id, run_name, competency, response_text, score, level, created_at, created_by, llm_model,
                total_tokens, total_cost_usd
         FROM assessments
         WHERE 1 = 1
@@ -346,6 +348,7 @@ async def list_assessments(
             "id": row["id"],
             "filename": f"session_{row['id']}.json",
             "participant_id": row["participant_id"],
+            "run_name": row["run_name"] or "",
             "competency": row["competency"],
             "score": row["score"],
             "level": row["level"],

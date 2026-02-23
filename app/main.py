@@ -922,6 +922,7 @@ async def diagnostic_feedback(request: dict, http_request: Request):
 
 class SaveSessionRequest(BaseModel):
     participant_id: str
+    run_name: str = ""
     steps: dict
     competency: str = "delegowanie"
 
@@ -934,6 +935,7 @@ async def save_session(req: SaveSessionRequest, request: Request):
         username = user.get("username", "anonymous")
         result = await db_save_assessment(
             participant_id=req.participant_id,
+            run_name=req.run_name,
             competency=req.competency,
             steps=req.steps,
             created_by=username,
