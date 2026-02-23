@@ -87,6 +87,15 @@ CREATE INDEX IF NOT EXISTS idx_dimension_scores_assessment ON dimension_scores(a
 CREATE INDEX IF NOT EXISTS idx_evidence_assessment ON evidence(assessment_id);
 CREATE INDEX IF NOT EXISTS idx_pipeline_steps_assessment ON pipeline_steps(assessment_id);
 CREATE INDEX IF NOT EXISTS idx_pipeline_steps_step_name ON pipeline_steps(step_name);
+
+CREATE TABLE IF NOT EXISTS sample_responses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    label TEXT NOT NULL,
+    content TEXT NOT NULL,
+    response_type TEXT NOT NULL DEFAULT 'GEN_AI' CHECK(response_type IN ('REAL', 'GEN_AI', 'GEN_HUMAN')),
+    created_at TEXT NOT NULL,
+    created_by TEXT NOT NULL DEFAULT 'system'
+);
 """
 
 

@@ -1,34 +1,39 @@
-import json, hashlib, secrets
+import sqlite3, json
 
-users_path = "/home/kochnik/LEM/config/users.json"
-with open(users_path) as f:
-    users = json.load(f)
+db_path = "/home/kochnik/LEM/data/lem.db"
+c = sqlite3.connect(db_path)
 
-new_pw = "lem2026!"
-salt = secrets.token_hex(16)
-h = hashlib.pbkdf2_hmac("sha256", new_pw.encode(), salt.encode(), 200_000).hex()
+print("=== ASSESSMENTS: llm_model column ===")
+rows = c.execute("SELECT id, participant_id, competency, llm_model FROM assessments ORDER BY id DESC").fetchall()
+for r in rows:
+    print(f"  id={r[0]} pid={r[1]!r} comp={r[2]} llm_model={r[3]!r}")
 
-users["admin"]["salt"] = salt
-users["admin"]["password_hash"] = h
-users["admin"]["role"] = "admin"
+print("\n=== PIPELINE STEPS: checking for _llm data in output_data ===")
+steps = c.execute("""
+    SELECT id, assessment_id, step_name, output_data
+    FROM pipeline_steps
+    WHERE assessment_id IS NOT NULL
+    ORDER BY id DESC
+    LIMIT 20
+""").fetchall()
+for s in steps:
+    try:
+        data = json.loads(s[3]) if s[3] else {}
+        llm = data.get("_llm", {})
+        model = llm.get("model", "N/A") if llm else "no _llm"
+        provider = llm.get("provider", "?") if llm else "?"
+        print(f"  step_id={s[0]} assessment={s[1]} step={s[2]} provider={provider} model={model}")
+    except:
+        print(f"  step_id={s[0]} assessment={s[1]} step={s[2]} [parse error]")
 
-with open(users_path, "w", encoding="utf-8") as f:
-    json.dump(users, f, indent=2, ensure_ascii=False)
-
-print(f"Admin password reset to: {new_pw}")
-print("Verifying...")
-
-with open(users_path) as f:
-    users2 = json.load(f)
-h2 = hashlib.pbkdf2_hmac("sha256", new_pw.encode(), users2["admin"]["salt"].encode(), 200_000).hex()
-print("Match:", h2 == users2["admin"]["password_hash"])
-
+print("\n=== CURRENT LLM RUNTIME (via API) ===")
 import requests
-s = requests.Session()
-r = s.post("http://localhost:8010/api/auth/login", json={"username": "admin", "password": new_pw})
-print(f"Login test: {r.status_code} {r.text[:200]}")
-
+sess = requests.Session()
+r = sess.post("http://localhost:8010/api/auth/login", json={"username": "admin", "password": "lem2026!"})
 if r.status_code == 200:
-    r2 = s.get("http://localhost:8010/api/sessions")
-    print(f"Sessions: {r2.status_code}")
-    print(r2.text[:2000])
+    r2 = sess.get("http://localhost:8010/api/llm/config")
+    print(json.dumps(r2.json(), indent=2))
+else:
+    print("Login failed:", r.status_code)
+
+c.close()

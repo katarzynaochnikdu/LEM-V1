@@ -477,25 +477,97 @@ async def assess_competency(request: AssessmentRequest):
 
 
 # ---------------------------------------------------------------------------
-# SAMPLE RESPONSES - przykładowe odpowiedzi do testowania
+# SAMPLE RESPONSES - przykładowe odpowiedzi do testowania (DB + pliki)
 # ---------------------------------------------------------------------------
 
 SAMPLE_RESPONSES_DIR = Path(__file__).resolve().parents[1]
 
+
+async def _migrate_file_samples():
+    """Jednorazowa migracja plików odpowiedz_*.md do bazy jako GEN_AI."""
+    from app.database import get_connection
+    from datetime import datetime, timezone
+
+    async with get_connection() as conn:
+        row = await conn.execute("SELECT COUNT(*) AS c FROM sample_responses")
+        count = (await row.fetchone())["c"]
+        if count > 0:
+            return
+
+        for f in sorted(SAMPLE_RESPONSES_DIR.glob("odpowiedz_*.md")):
+            raw = f.read_text(encoding="utf-8")
+            lines = raw.strip().split("\n")
+            title = lines[0].lstrip("# ").strip() if lines else f.stem
+            body = "\n".join(lines[1:]).strip() if len(lines) > 1 else raw
+            await conn.execute(
+                """
+                INSERT INTO sample_responses (label, content, response_type, created_at, created_by)
+                VALUES (?, ?, 'GEN_AI', ?, 'system')
+                """,
+                (title, body, datetime.now(timezone.utc).isoformat()),
+            )
+        await conn.commit()
+        logger.info("Migrated %d file samples to DB", count)
+
+
+@app.on_event("startup")
+async def _startup_migrate_samples():
+    try:
+        await _migrate_file_samples()
+    except Exception:
+        logger.warning("Sample migration skipped (table may not exist yet)", exc_info=True)
+
+
+class CreateSampleRequest(BaseModel):
+    label: str = Field(..., min_length=1)
+    content: str = Field(..., min_length=10)
+    response_type: str = Field(default="GEN_AI")
+
+
 @app.get("/api/samples")
 async def list_sample_responses():
-    """Lista dostępnych przykładowych odpowiedzi testowych"""
+    """Lista odpowiedzi testowych z bazy + pliki fallback."""
+    from app.database import get_connection
+
     samples = []
-    for f in sorted(SAMPLE_RESPONSES_DIR.glob("odpowiedz_*.md")):
-        name = f.stem
-        label = name.replace("odpowiedz_", "").replace("_", " ").title()
-        samples.append({"id": name, "label": label, "filename": f.name})
+    try:
+        async with get_connection() as conn:
+            rows = await conn.execute_fetchall(
+                "SELECT id, label, response_type, created_at, created_by FROM sample_responses ORDER BY id ASC"
+            )
+        for row in rows:
+            samples.append({
+                "id": f"db_{row['id']}",
+                "label": row["label"],
+                "filename": f"db_{row['id']}",
+                "response_type": row["response_type"],
+                "created_by": row["created_by"],
+            })
+    except Exception:
+        for f in sorted(SAMPLE_RESPONSES_DIR.glob("odpowiedz_*.md")):
+            name = f.stem
+            label = name.replace("odpowiedz_", "").replace("_", " ").title()
+            samples.append({"id": name, "label": label, "filename": f.name, "response_type": "GEN_AI", "created_by": "system"})
+
     return {"samples": samples}
 
 
 @app.get("/api/samples/{sample_id}")
 async def get_sample_response(sample_id: str):
-    """Pobierz treść przykładowej odpowiedzi"""
+    """Pobierz treść przykładowej odpowiedzi (DB lub plik)."""
+    from app.database import get_connection
+
+    if sample_id.startswith("db_"):
+        db_id = int(sample_id.removeprefix("db_"))
+        async with get_connection() as conn:
+            cursor = await conn.execute(
+                "SELECT id, label, content, response_type, created_by FROM sample_responses WHERE id = ?", (db_id,)
+            )
+            row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Sample '{sample_id}' not found")
+        return {"id": sample_id, "title": row["label"], "content": row["content"], "response_type": row["response_type"]}
+
     filepath = SAMPLE_RESPONSES_DIR / f"{sample_id}.md"
     if not filepath.exists():
         raise HTTPException(status_code=404, detail=f"Sample '{sample_id}' not found")
@@ -503,7 +575,58 @@ async def get_sample_response(sample_id: str):
     lines = content.strip().split("\n")
     title = lines[0].lstrip("# ").strip() if lines else sample_id
     body = "\n".join(lines[1:]).strip() if len(lines) > 1 else content
-    return {"id": sample_id, "title": title, "content": body}
+    return {"id": sample_id, "title": title, "content": body, "response_type": "GEN_AI"}
+
+
+@app.post("/api/samples")
+async def create_sample_response(req: CreateSampleRequest, http_request: Request):
+    """Zapisz nową odpowiedź testową do bazy."""
+    from app.database import get_connection
+    from datetime import datetime, timezone
+
+    if req.response_type not in ("REAL", "GEN_AI", "GEN_HUMAN"):
+        raise HTTPException(status_code=400, detail="response_type must be REAL, GEN_AI, or GEN_HUMAN")
+
+    user = getattr(http_request.state, "user", {})
+    created_by = user.get("username", "anonymous")
+
+    async with get_connection() as conn:
+        cursor = await conn.execute(
+            """
+            INSERT INTO sample_responses (label, content, response_type, created_at, created_by)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (req.label, req.content, req.response_type, datetime.now(timezone.utc).isoformat(), created_by),
+        )
+        new_id = cursor.lastrowid
+        await conn.commit()
+
+    log_activity(action="sample_create", actor=created_by, details={"sample_id": new_id, "label": req.label, "response_type": req.response_type})
+    return {"ok": True, "id": f"db_{new_id}", "label": req.label, "response_type": req.response_type}
+
+
+@app.delete("/api/samples/{sample_id}")
+async def delete_sample_response(sample_id: str, http_request: Request):
+    """Usuń odpowiedź testową z bazy."""
+    from app.database import get_connection
+
+    if not sample_id.startswith("db_"):
+        raise HTTPException(status_code=400, detail="Cannot delete file-based samples")
+
+    db_id = int(sample_id.removeprefix("db_"))
+    user = getattr(http_request.state, "user", {})
+    actor = user.get("username", "anonymous")
+
+    async with get_connection() as conn:
+        cursor = await conn.execute("SELECT id FROM sample_responses WHERE id = ?", (db_id,))
+        row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Sample not found")
+        await conn.execute("DELETE FROM sample_responses WHERE id = ?", (db_id,))
+        await conn.commit()
+
+    log_activity(action="sample_delete", actor=actor, details={"sample_id": sample_id})
+    return {"ok": True, "id": sample_id}
 
 
 # ---------------------------------------------------------------------------
