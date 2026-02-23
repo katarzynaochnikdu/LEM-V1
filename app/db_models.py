@@ -74,13 +74,25 @@ async def save_assessment(
     if prompt_versions is None:
         prompt_versions = steps.get("prompt_versions", {})
 
+    total_tokens = 0
+    total_cost_usd = 0.0
+    for step_name in ("parse", "map", "score", "feedback"):
+        step_data = steps.get(step_name, {})
+        usage = step_data.get("_usage")
+        if usage:
+            total_tokens += int(usage.get("total_tokens", 0))
+        cost = step_data.get("_cost")
+        if isinstance(cost, (int, float)):
+            total_cost_usd += float(cost)
+
     created_at = _now_iso()
     async with get_connection() as conn:
         cursor = await conn.execute(
             """
             INSERT INTO assessments (
-                participant_id, competency, response_text, score, level, created_at, created_by, llm_model, prompt_versions
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                participant_id, competency, response_text, score, level, created_at, created_by,
+                llm_model, prompt_versions, total_tokens, total_cost_usd
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 participant_id,
@@ -92,6 +104,8 @@ async def save_assessment(
                 created_by,
                 llm_model,
                 _dumps(prompt_versions),
+                total_tokens,
+                total_cost_usd,
             ),
         )
         assessment_id = cursor.lastrowid
@@ -303,7 +317,8 @@ async def list_assessments(
     limit: int = 200,
 ) -> list[dict[str, Any]]:
     query = """
-        SELECT id, participant_id, competency, score, level, created_at, created_by, llm_model
+        SELECT id, participant_id, competency, response_text, score, level, created_at, created_by, llm_model,
+               total_tokens, total_cost_usd
         FROM assessments
         WHERE 1 = 1
     """
@@ -322,8 +337,11 @@ async def list_assessments(
     async with get_connection() as conn:
         rows = await conn.execute_fetchall(query, tuple(params))
 
-    return [
-        {
+    result = []
+    for row in rows:
+        text = row["response_text"] or ""
+        text_hash = str(hash(text) & 0xFFFFFFFF) if text else ""
+        result.append({
             "id": row["id"],
             "filename": f"session_{row['id']}.json",
             "participant_id": row["participant_id"],
@@ -333,9 +351,12 @@ async def list_assessments(
             "saved_at": row["created_at"],
             "saved_by": row["created_by"],
             "llm_model": row["llm_model"],
-        }
-        for row in rows
-    ]
+            "total_tokens": row["total_tokens"] or 0,
+            "total_cost_usd": row["total_cost_usd"] or 0.0,
+            "response_text_hash": text_hash,
+            "response_text_len": len(text),
+        })
+    return result
 
 
 async def get_assessment_by_id(assessment_id: int) -> Optional[dict[str, Any]]:
@@ -406,8 +427,15 @@ async def get_assessment_by_id(assessment_id: int) -> Optional[dict[str, Any]]:
             evidence_map[row["dimension"]].append(row["citation"])
 
     steps: dict[str, Any] = {}
+    usage_per_step: dict[str, Any] = {}
     for row in pipeline_rows:
-        steps[row["step_name"]] = _loads(row["output_data"], {})
+        step_out = _loads(row["output_data"], {})
+        steps[row["step_name"]] = step_out
+        if step_out.get("_usage") or step_out.get("_cost") is not None:
+            usage_per_step[row["step_name"]] = {
+                "usage": step_out.get("_usage"),
+                "cost_usd": step_out.get("_cost"),
+            }
     steps["prompt_versions"] = _loads(assessment["prompt_versions"], {})
 
     feedback_data = dict(feedback_row) if feedback_row else {}
@@ -423,6 +451,9 @@ async def get_assessment_by_id(assessment_id: int) -> Optional[dict[str, Any]]:
         "level": assessment["level"],
         "llm_model": assessment["llm_model"],
         "prompt_versions": _loads(assessment["prompt_versions"], {}),
+        "total_tokens": assessment["total_tokens"] or 0,
+        "total_cost_usd": assessment["total_cost_usd"] or 0.0,
+        "usage_per_step": usage_per_step,
         "steps": steps,
         "evidence": evidence_map,
         "dimension_scores": {k: v.get("ocena") for k, v in dimension_scores.items()},

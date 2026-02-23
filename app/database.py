@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS assessments (
     created_at TEXT NOT NULL,
     created_by TEXT NOT NULL,
     llm_model TEXT,
-    prompt_versions TEXT
+    prompt_versions TEXT,
+    total_tokens INTEGER DEFAULT 0,
+    total_cost_usd REAL DEFAULT 0.0
 );
 
 CREATE TABLE IF NOT EXISTS dimension_scores (
@@ -111,7 +113,18 @@ async def get_connection():
         await conn.close()
 
 
+MIGRATIONS = [
+    "ALTER TABLE assessments ADD COLUMN total_tokens INTEGER DEFAULT 0",
+    "ALTER TABLE assessments ADD COLUMN total_cost_usd REAL DEFAULT 0.0",
+]
+
+
 async def init_db() -> None:
     async with get_connection() as conn:
         await conn.executescript(CREATE_TABLES_SQL)
+        for migration in MIGRATIONS:
+            try:
+                await conn.execute(migration)
+            except Exception:
+                pass
         await conn.commit()

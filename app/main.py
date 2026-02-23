@@ -327,11 +327,13 @@ async def get_estimate_cost(
 
 def _build_usage_cost(usage: dict | None) -> dict:
     """Build _usage and _cost from module's last_usage using real pricing."""
-    if not usage:
+    if usage is None:
         return {"_usage": None, "_cost": None}
     prompt_tokens = int(usage.get("prompt_tokens", 0))
     completion_tokens = int(usage.get("completion_tokens", 0))
     total_tokens = prompt_tokens + completion_tokens
+    if total_tokens == 0:
+        return {"_usage": None, "_cost": None}
     model = get_llm_runtime().get("model", "")
     cost_info = None
     try:
