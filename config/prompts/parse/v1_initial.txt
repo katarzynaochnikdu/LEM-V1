@@ -20,8 +20,7 @@ ZWRÓĆ WYNIK W FORMACIE JSON:
   "przygotowanie": "tekst dotyczący przygotowania do rozmowy",
   "przebieg": "tekst opisujący przebieg rozmowy krok po kroku",
   "decyzje": "tekst o sposobie podejmowania decyzji co i jak delegować",
-  "efekty": "tekst o planowanych efektach rozmowy delegującej",
-  "raw_text": "oryginalny pełny tekst odpowiedzi"
+  "efekty": "tekst o planowanych efektach rozmowy delegującej"
 }}
 
 WAŻNE:
