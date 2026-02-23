@@ -59,6 +59,7 @@ from app.cost_calculator import (
     list_model_pricing,
     estimate_evaluation_cost,
     get_estimated_tokens_per_evaluation,
+    calculate_cost_breakdown,
 )
 from app.exporters import export_report, get_content_type, get_filename
 from app.database import init_db
@@ -323,6 +324,34 @@ async def get_estimate_cost(
 # FACTORY - nowe instancje modułów per kompetencja (bez singletona)
 # ---------------------------------------------------------------------------
 
+def _build_usage_cost(usage: dict | None) -> dict:
+    """Build _usage and _cost from module's last_usage using real pricing."""
+    if not usage:
+        return {"_usage": None, "_cost": None}
+    prompt_tokens = int(usage.get("prompt_tokens", 0))
+    completion_tokens = int(usage.get("completion_tokens", 0))
+    total_tokens = prompt_tokens + completion_tokens
+    model = get_llm_runtime().get("model", "")
+    cost_info = None
+    try:
+        breakdown = calculate_cost_breakdown(
+            model=model,
+            input_tokens=prompt_tokens,
+            output_tokens=completion_tokens,
+        )
+        cost_info = breakdown["cost_usd"]
+    except (ValueError, KeyError):
+        pass
+    return {
+        "_usage": {
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+        },
+        "_cost": cost_info,
+    }
+
+
 def get_modules(competency: str = "delegowanie"):
     """Factory: nowe instancje modułów pipeline dla danej kompetencji."""
     competency = resolve_competency(competency)
@@ -504,6 +533,7 @@ async def diagnostic_parse(request: DiagnosticParseRequest, http_request: Reques
         active_prompt = pm_get_prompt("parse", competency=request.competency)
         prompt_sent = parser.prompt_template.format(response_text=request.response_text)
         parsed = await parser.parse(request.response_text)
+        uc = _build_usage_cost(parser.last_usage)
         return {
             "sections": parsed.sections,
             "raw_text": parsed.raw_text,
@@ -519,6 +549,7 @@ async def diagnostic_parse(request: DiagnosticParseRequest, http_request: Reques
                 "active_template": active_prompt.get("content"),
             },
             "_llm": llm_runtime,
+            **uc,
         }
     except Exception as e:
         logger.error("diagnostic_parse FAILED:\n%s", traceback.format_exc())
@@ -552,6 +583,7 @@ async def diagnostic_map(request: dict, http_request: Request):
         )
         prompt_sent = mapper.prompt_template.format(parsed_response=sections_text)
         mapped = await mapper.map(parsed)
+        uc = _build_usage_cost(mapper.last_usage)
 
         evidence_out = {}
         for key, ev in mapped.evidence.items():
@@ -576,6 +608,7 @@ async def diagnostic_map(request: dict, http_request: Request):
                 "active_template": active_prompt.get("content"),
             },
             "_llm": llm_runtime,
+            **uc,
         }
     except Exception as e:
         logger.error("diagnostic_map FAILED:\n%s", traceback.format_exc())
@@ -633,6 +666,7 @@ async def diagnostic_score(request: dict, http_request: Request):
                 score_prompts[wymiar_key] = "(wymiar nieobecny – pominięty, ocena = 0.0)"
 
         scoring = await scorer.score(mapped)
+        uc = _build_usage_cost(scorer.last_usage)
         dim_out = {}
         for key, ds in scoring.dimension_scores.items():
             dim_out[key] = {
@@ -666,6 +700,7 @@ async def diagnostic_score(request: dict, http_request: Request):
                 "active_template": active_prompt.get("content"),
             },
             "_llm": llm_runtime,
+            **uc,
         }
     except Exception as e:
         logger.error("diagnostic_score FAILED:\n%s", traceback.format_exc())
@@ -729,6 +764,7 @@ async def diagnostic_feedback(request: dict, http_request: Request):
             evidence=fg._format_evidence(scoring),
         )
         feedback = await fg.generate(scoring)
+        uc = _build_usage_cost(fg.last_usage)
         return {
             "summary": feedback.summary,
             "recommendation": feedback.recommendation,
@@ -746,6 +782,7 @@ async def diagnostic_feedback(request: dict, http_request: Request):
                 "active_template": active_prompt.get("content"),
             },
             "_llm": llm_runtime,
+            **uc,
         }
     except Exception as e:
         logger.error("diagnostic_feedback FAILED:\n%s", traceback.format_exc())

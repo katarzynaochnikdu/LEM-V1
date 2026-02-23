@@ -22,6 +22,18 @@ class FeedbackGenerator:
         self.prompt_template = get_active_prompt_content("feedback", competency)
         self.system_prompt = get_system_prompt("feedback")
         self.wymiary = get_wymiary_for_competency(competency)
+        self.last_usage: dict[str, Any] | None = None
+
+    def _usage_to_dict(self, usage: Any) -> dict[str, Any]:
+        if usage is None:
+            return {}
+        if isinstance(usage, dict):
+            return usage
+        if hasattr(usage, "model_dump"):
+            return usage.model_dump()
+        if hasattr(usage, "__dict__"):
+            return dict(usage.__dict__)
+        return {}
 
     async def generate(self, scoring_result: ScoringResult) -> Feedback:
         """Generuje spersonalizowany feedback na podstawie wyniku scoringu."""
@@ -46,6 +58,7 @@ class FeedbackGenerator:
                 **max_tokens_param(3000)
             )
 
+            self.last_usage = self._usage_to_dict(getattr(response, "usage", None))
             result_text = response.choices[0].message.content
             result_json = extract_json_from_text(result_text)
 
