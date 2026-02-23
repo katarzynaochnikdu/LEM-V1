@@ -78,6 +78,7 @@ from app.db_models import (
 
 load_dotenv()
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("lem.api")
 
 app = FastAPI(
@@ -1358,7 +1359,7 @@ async def serve_frontend(full_path: str):
             status_code=503,
             detail="Frontend build not found. Build React app in ../frontend (npm run build).",
         )
-    return FileResponse(str(index_file))
+    return FileResponse(str(index_file), headers={"Cache-Control": "no-cache, must-revalidate"})
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 from datetime import datetime, timezone
@@ -340,7 +341,7 @@ async def list_assessments(
     result = []
     for row in rows:
         text = row["response_text"] or ""
-        text_hash = str(hash(text) & 0xFFFFFFFF) if text else ""
+        text_hash = hashlib.md5(text.encode()).hexdigest()[:12] if text else ""
         result.append({
             "id": row["id"],
             "filename": f"session_{row['id']}.json",
@@ -364,7 +365,8 @@ async def get_assessment_by_id(assessment_id: int) -> Optional[dict[str, Any]]:
         assessment = await _fetchone(
             conn,
             """
-            SELECT id, participant_id, competency, response_text, score, level, created_at, created_by, llm_model, prompt_versions
+            SELECT id, participant_id, competency, response_text, score, level, created_at, created_by,
+                   llm_model, prompt_versions, total_tokens, total_cost_usd
             FROM assessments
             WHERE id = ?
             """,

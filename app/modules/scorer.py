@@ -5,6 +5,7 @@ Przypisuje ocenę 0-4 (co 0.25) na podstawie analizy wymiarów (dynamicznie per 
 
 import json
 import re
+from pathlib import Path
 from typing import Any
 from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.models import MappedResponse, ScoringResult, DimensionScore

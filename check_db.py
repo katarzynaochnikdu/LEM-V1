@@ -1,23 +1,30 @@
-import asyncio
-from openai import AsyncOpenAI
+import urllib.request, json
 
-async def test():
-    client = AsyncOpenAI(base_url="http://localhost:8000/v1", api_key="2iMU4Xgr4hhg80RLpQEZ0nHY1j7zNQ7CFkeKU1Z6lZHzyALuKU")
-    response = await client.chat.completions.create(
-        model="Qwen/Qwen2.5-Coder-14B-Instruct-AWQ",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": "Say hello in Polish."},
-        ],
-        max_tokens=50,
-        temperature=0.1,
-    )
-    print("Response:", response.choices[0].message.content)
-    print("Usage attr:", hasattr(response, "usage"))
-    print("Usage:", response.usage)
-    if response.usage:
-        print("  prompt_tokens:", response.usage.prompt_tokens)
-        print("  completion_tokens:", response.usage.completion_tokens)
-        print("  total_tokens:", response.usage.total_tokens)
+url = "http://localhost:8010/api/health"
+r = urllib.request.urlopen(url)
+print("health:", r.read().decode())
 
-asyncio.run(test())
+# Login
+login_data = json.dumps({"username": "admin", "password": "lem2026!"}).encode()
+import http.cookiejar
+cj = http.cookiejar.CookieJar()
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+
+req = urllib.request.Request("http://localhost:8010/api/auth/login", data=login_data, headers={"Content-Type": "application/json"})
+r = opener.open(req)
+print("login:", r.read().decode())
+
+r = opener.open("http://localhost:8010/api/sessions")
+sessions = json.loads(r.read().decode())
+print(f"\nTotal: {len(sessions)} sessions")
+
+groups = {}
+for s in sessions:
+    h = s.get("response_text_hash", "?")
+    if h not in groups:
+        groups[h] = []
+    groups[h].append(s)
+
+for h, items in groups.items():
+    pids = sorted(set(i["participant_id"] for i in items))
+    print(f"  hash={h} -> {len(items)} items, pids={pids}, text_len={items[0].get('response_text_len')}")

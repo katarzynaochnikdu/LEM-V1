@@ -1,13 +1,26 @@
 """
 Centralny klient LLM - przełączanie między local-server i OpenAI API.
+Konfiguracja persystowana do pliku JSON, żeby była współdzielona między workerami.
 """
 
+import json
+import logging
 import os
+import time
+from pathlib import Path
 from typing import Literal
 from openai import AsyncOpenAI
 
+logger = logging.getLogger("lem.llm")
 
 LlmProvider = Literal["local", "openai"]
+
+_CONFIG_DIR = Path(__file__).parent.parent / "config"
+_RUNTIME_PATH = _CONFIG_DIR / "llm_runtime.json"
+_RUNTIME_CACHE_TTL = 2.0
+
+_cached_runtime: dict | None = None
+_cached_at: float = 0.0
 
 
 def _env_default_provider() -> LlmProvider:
@@ -41,9 +54,6 @@ def _supported_openai_models() -> list[str]:
     return models or ["gpt-4o", "gpt-4.1"]
 
 
-_llm_runtime: dict | None = None
-
-
 def _build_runtime_from_env() -> dict:
     return {
         "provider": _env_default_provider(),
@@ -60,11 +70,53 @@ def _build_runtime_from_env() -> dict:
     }
 
 
+def _save_runtime(runtime: dict) -> None:
+    _CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    safe = {
+        "provider": runtime["provider"],
+        "local": {"base_url": runtime["local"]["base_url"], "model": runtime["local"]["model"]},
+        "openai": {"base_url": runtime["openai"]["base_url"], "model": runtime["openai"]["model"]},
+    }
+    if runtime["openai"].get("api_key"):
+        safe["openai"]["api_key"] = runtime["openai"]["api_key"]
+    try:
+        tmp = _RUNTIME_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps(safe, indent=2), encoding="utf-8")
+        tmp.replace(_RUNTIME_PATH)
+    except OSError:
+        logger.warning("Could not persist LLM runtime to %s", _RUNTIME_PATH)
+
+
+def _load_runtime_from_file() -> dict | None:
+    if not _RUNTIME_PATH.exists():
+        return None
+    try:
+        data = json.loads(_RUNTIME_PATH.read_text(encoding="utf-8"))
+        base = _build_runtime_from_env()
+        if "provider" in data:
+            base["provider"] = data["provider"]
+        for key in ("local", "openai"):
+            if key in data:
+                for field in ("base_url", "model", "api_key"):
+                    if field in data[key]:
+                        base[key][field] = data[key][field]
+        return base
+    except (json.JSONDecodeError, OSError, KeyError):
+        return None
+
+
 def _runtime() -> dict:
-    global _llm_runtime
-    if _llm_runtime is None:
-        _llm_runtime = _build_runtime_from_env()
-    return _llm_runtime
+    global _cached_runtime, _cached_at
+    now = time.monotonic()
+    if _cached_runtime is not None and (now - _cached_at) < _RUNTIME_CACHE_TTL:
+        return _cached_runtime
+    loaded = _load_runtime_from_file()
+    if loaded is not None:
+        _cached_runtime = loaded
+    elif _cached_runtime is None:
+        _cached_runtime = _build_runtime_from_env()
+    _cached_at = now
+    return _cached_runtime
 
 
 def get_llm_runtime() -> dict:
@@ -84,7 +136,10 @@ def get_llm_runtime() -> dict:
 
 
 def set_llm_runtime(provider: LlmProvider, model: str, openai_api_key: str | None = None) -> dict:
-    runtime = _runtime()
+    global _cached_runtime, _cached_at
+    runtime = _runtime().copy()
+    runtime["local"] = runtime["local"].copy()
+    runtime["openai"] = runtime["openai"].copy()
     if provider not in ("local", "openai"):
         raise ValueError("provider musi być 'local' albo 'openai'")
     if not model.strip():
@@ -96,6 +151,10 @@ def set_llm_runtime(provider: LlmProvider, model: str, openai_api_key: str | Non
     runtime[provider]["model"] = model.strip()
     if provider == "openai" and openai_api_key is not None:
         runtime["openai"]["api_key"] = openai_api_key.strip()
+
+    _save_runtime(runtime)
+    _cached_runtime = runtime
+    _cached_at = time.monotonic()
     return get_llm_runtime()
 
 
