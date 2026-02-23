@@ -7,12 +7,16 @@ Sesje persystowane w config/sessions.json (współdzielone między workerami).
 import hashlib
 import hmac
 import json
+import logging
 import os
 import secrets
+import tempfile
 import time
 import fcntl
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger("lem.auth")
 
 USERS_PATH = Path(__file__).parent.parent / "config" / "users.json"
 SESSIONS_PATH = Path(__file__).parent.parent / "config" / "sessions.json"
@@ -42,14 +46,27 @@ def _load_json(path: Path, default=None):
 
 def _save_json(path: Path, data) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.flush()
-        os.fsync(f.fileno())
-        fcntl.flock(f, fcntl.LOCK_UN)
-    tmp.replace(path)
+    lock_path = path.with_suffix(".lock")
+    with open(lock_path, "w") as lock_f:
+        fcntl.flock(lock_f, fcntl.LOCK_EX)
+        try:
+            fd, tmp_name = tempfile.mkstemp(
+                dir=path.parent, prefix=path.stem + "_", suffix=".tmp"
+            )
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_name, str(path))
+            except BaseException:
+                try:
+                    os.unlink(tmp_name)
+                except OSError:
+                    pass
+                raise
+        finally:
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
 
 
 def _load_users() -> dict:
@@ -159,21 +176,24 @@ def log_activity(
     status: str = "ok",
     details: Optional[dict] = None,
 ) -> None:
-    entry = {
-        "ts": time.time(),
-        "action": action,
-        "actor": actor or "system",
-        "target": target,
-        "status": status,
-        "details": details or {},
-    }
-    log = _load_json(ACTIVITY_PATH, [])
-    if not isinstance(log, list):
-        log = []
-    log.append(entry)
-    if len(log) > MAX_ACTIVITY_LOG:
-        log = log[-MAX_ACTIVITY_LOG:]
-    _save_json(ACTIVITY_PATH, log)
+    try:
+        entry = {
+            "ts": time.time(),
+            "action": action,
+            "actor": actor or "system",
+            "target": target,
+            "status": status,
+            "details": details or {},
+        }
+        log = _load_json(ACTIVITY_PATH, [])
+        if not isinstance(log, list):
+            log = []
+        log.append(entry)
+        if len(log) > MAX_ACTIVITY_LOG:
+            log = log[-MAX_ACTIVITY_LOG:]
+        _save_json(ACTIVITY_PATH, log)
+    except Exception:
+        logger.warning("log_activity failed for action=%s", action, exc_info=True)
 
 
 def list_activity(limit: int = 200) -> list[dict]:

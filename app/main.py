@@ -4,7 +4,9 @@ Obsługa 4 kompetencji menedżerskich z izolowanym cyklem per kompetencja
 """
 
 import json
+import logging
 import os
+import traceback
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,6 +75,8 @@ from app.db_models import (
 )
 
 load_dotenv()
+
+logger = logging.getLogger("lem.api")
 
 app = FastAPI(
     title="System Oceny Kompetencji LEM",
@@ -517,8 +521,7 @@ async def diagnostic_parse(request: DiagnosticParseRequest, http_request: Reques
             "_llm": llm_runtime,
         }
     except Exception as e:
-        import traceback, logging
-        logging.getLogger("uvicorn.error").error("diagnostic_parse FAILED:\n%s", traceback.format_exc())
+        logger.error("diagnostic_parse FAILED:\n%s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -575,6 +578,7 @@ async def diagnostic_map(request: dict, http_request: Request):
             "_llm": llm_runtime,
         }
     except Exception as e:
+        logger.error("diagnostic_map FAILED:\n%s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -664,6 +668,7 @@ async def diagnostic_score(request: dict, http_request: Request):
             "_llm": llm_runtime,
         }
     except Exception as e:
+        logger.error("diagnostic_score FAILED:\n%s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -743,6 +748,7 @@ async def diagnostic_feedback(request: dict, http_request: Request):
             "_llm": llm_runtime,
         }
     except Exception as e:
+        logger.error("diagnostic_feedback FAILED:\n%s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -759,21 +765,25 @@ class SaveSessionRequest(BaseModel):
 @app.post("/api/sessions/save")
 async def save_session(req: SaveSessionRequest, request: Request):
     """Zapisuje pełną sesję diagnostyczną do bazy SQLite."""
-    user = getattr(request.state, "user", {})
-    username = user.get("username", "anonymous")
-    result = await db_save_assessment(
-        participant_id=req.participant_id,
-        competency=req.competency,
-        steps=req.steps,
-        created_by=username,
-        prompt_versions=pm_get_active_versions(req.competency),
-    )
-    log_activity(
-        action="session_save",
-        actor=username,
-        details={"participant": req.participant_id, "competency": req.competency, "session_id": result["id"]},
-    )
-    return {"ok": True, "filename": result["filename"], "id": result["id"]}
+    try:
+        user = getattr(request.state, "user", {})
+        username = user.get("username", "anonymous")
+        result = await db_save_assessment(
+            participant_id=req.participant_id,
+            competency=req.competency,
+            steps=req.steps,
+            created_by=username,
+            prompt_versions=pm_get_active_versions(req.competency),
+        )
+        log_activity(
+            action="session_save",
+            actor=username,
+            details={"participant": req.participant_id, "competency": req.competency, "session_id": result["id"]},
+        )
+        return {"ok": True, "filename": result["filename"], "id": result["id"]}
+    except Exception as e:
+        logger.error("save_session FAILED:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 class SaveRunRequest(BaseModel):
@@ -786,21 +796,25 @@ class SaveRunRequest(BaseModel):
 @app.post("/api/runs/save")
 async def save_run(req: SaveRunRequest, request: Request):
     """Zapisuje pojedynczy run modułu (prompt + wynik) do bazy SQLite."""
-    user = getattr(request.state, "user", {})
-    username = user.get("username", "anonymous")
-    result = await db_save_run(
-        participant_id=req.participant_id,
-        competency=req.competency,
-        module=req.module,
-        run=req.run,
-        saved_by=username,
-    )
-    log_activity(
-        action="run_save",
-        actor=username,
-        details={"participant": req.participant_id, "competency": req.competency, "module": req.module},
-    )
-    return {"ok": True, "filename": result["filename"], "id": result["id"]}
+    try:
+        user = getattr(request.state, "user", {})
+        username = user.get("username", "anonymous")
+        result = await db_save_run(
+            participant_id=req.participant_id,
+            competency=req.competency,
+            module=req.module,
+            run=req.run,
+            saved_by=username,
+        )
+        log_activity(
+            action="run_save",
+            actor=username,
+            details={"participant": req.participant_id, "competency": req.competency, "module": req.module},
+        )
+        return {"ok": True, "filename": result["filename"], "id": result["id"]}
+    except Exception as e:
+        logger.error("save_run FAILED:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/runs")
