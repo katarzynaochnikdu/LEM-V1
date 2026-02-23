@@ -4,9 +4,8 @@ Przypisuje ocenę 0-4 (co 0.25) na podstawie analizy wymiarów (dynamicznie per 
 """
 
 import json
-import os
 import re
-from pathlib import Path
+from typing import Any
 from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.models import MappedResponse, ScoringResult, DimensionScore
 from app.rubric import get_wymiary_for_competency, get_poziom_kompetencji
@@ -31,9 +30,28 @@ class CompetencyScorer:
 
         self.prompt_template = get_active_prompt_content("score", competency)
         self.system_prompt = get_system_prompt("score")
+        self.last_usage: dict[str, Any] | None = None
+        self._accumulated_usage: dict[str, int] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+
+    def _usage_to_dict(self, usage: Any) -> dict[str, Any]:
+        if usage is None:
+            return {}
+        if isinstance(usage, dict):
+            return usage
+        if hasattr(usage, "model_dump"):
+            return usage.model_dump()
+        if hasattr(usage, "__dict__"):
+            return dict(usage.__dict__)
+        return {}
+
+    def _accumulate_usage(self, usage: Any) -> None:
+        d = self._usage_to_dict(usage)
+        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+            self._accumulated_usage[key] += int(d.get(key, 0))
 
     async def score(self, mapped_response: MappedResponse) -> ScoringResult:
         """Ocenia kompetencję na podstawie zmapowanej odpowiedzi."""
+        self._accumulated_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         dimension_scores = {}
         total_weighted_score = 0.0
 
@@ -57,6 +75,7 @@ class CompetencyScorer:
 
         poziom = get_poziom_kompetencji(final_score)
 
+        self.last_usage = dict(self._accumulated_usage)
         return ScoringResult(
             ocena=final_score,
             poziom=poziom.value,
@@ -94,6 +113,7 @@ class CompetencyScorer:
                 **max_tokens_param(10)
             )
 
+            self._accumulate_usage(getattr(response, "usage", None))
             score_text = response.choices[0].message.content.strip()
             match = re.search(r'(\d+\.?\d*)', score_text)
             if match:

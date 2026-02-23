@@ -4,8 +4,7 @@ Ekstrakcja cytatów-dowodów dla wymiarów (dynamicznie per kompetencja)
 """
 
 import json
-import os
-from pathlib import Path
+from typing import Any
 from app.llm_client import get_llm_client, get_model_name, max_tokens_param, temperature_param
 from app.json_utils import extract_json_from_text
 from app.models import ParsedResponse, MappedResponse, WymiarEvidence
@@ -23,6 +22,18 @@ class ResponseMapper:
         self.prompt_template = get_active_prompt_content("map", competency)
         self.system_prompt = get_system_prompt("map")
         self.wymiary = get_wymiary_for_competency(competency)
+        self.last_usage: dict[str, Any] | None = None
+
+    def _usage_to_dict(self, usage: Any) -> dict[str, Any]:
+        if usage is None:
+            return {}
+        if isinstance(usage, dict):
+            return usage
+        if hasattr(usage, "model_dump"):
+            return usage.model_dump()
+        if hasattr(usage, "__dict__"):
+            return dict(usage.__dict__)
+        return {}
 
     async def map(self, parsed_response: ParsedResponse) -> MappedResponse:
         """Mapuje sparsowaną odpowiedź na wymiary kompetencji."""
@@ -45,6 +56,7 @@ class ResponseMapper:
                 **max_tokens_param(3000)
             )
 
+            self.last_usage = self._usage_to_dict(getattr(response, "usage", None))
             result_text = response.choices[0].message.content
             result_json = extract_json_from_text(result_text)
 
